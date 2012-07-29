@@ -1,47 +1,31 @@
-pg = require('pg')
-db_conn = process.env.DATABASE_URL || 'postgres://austinogilvie:@localhost:5432/twitter'
-port    = process.env.PORT || 3000
-db_client  = new pg.Client(db_conn)
-db_client.connect();
-
+model = require('../models/tweet')
 tweets = []
 exports.index = (req, res) ->
-  query='SELECT * FROM users INNER JOIN tweets ON tweets.user_id = users.id LIMIT 10;'
-
-  db_client.query query, null, (err, result) ->
+  model.find_all (err, result) ->
     if err
-      console.log "AN ERROR OCCURED: " + err
+      console.log 'An error occurred: ' + err
     else
-      res.render 'index',
+      res.render 'index'
         title: 'Chirpie',
         header: 'Welcome to Chirpie',
         tweets: result.rows
 
 exports.newTweet = (req, res) ->
-  console.log req.body.tweet.username
   if req.body and req.body.tweet
-    query = "SELECT * from users WHERE username = '" + req.body.tweet.username+"';"
-    console.log query
-    db_client.query query, null, (err, result) ->
+    model.find_user(req.body.tweet.username, (err, result) ->
       if err
-        console.log "NO user found"
+        console.log 'ERROR...could not find user...', err
       else
-        console.log result
         user_id = result.rows[0].id
-        query = db_client.query('INSERT INTO tweets(user_id, content) VALUES($1, $2)', [user_id,req.body.tweet.content])
-    if accepts_html(req.headers['accept']) is true
-      res.redirect('/')
-    else
-      res.send({status:"OK", message: "tweet received"})
-  else
-    res.send({status:"NOT_OK", message: "no tweet received"})
+        model.save_tweet(user_id, req.body.tweet.content, (err, result) -> 
+          if accepts_html(req.headers['accept'])
+            res.redirect('/')
+          else
+            res.send({status:"OK", message: "Tweet received"})
+        )
+    )
 
 accepts_html = (header) ->
   attrs = header.split(",")
   included = 'text/html' in attrs
   return included
-
-in_array = (list, id) ->
-  included = id in list
-  return included
-
