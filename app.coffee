@@ -2,9 +2,8 @@ connect = require('connect')
 express = require('express')
 jade    = require('jade')
 routes  = require('./routes')
-pg      = require('pg')
-app = module.exports = express.createServer()
 
+app = module.exports = express.createServer()
 
 # CONFIGURATION
 app.configure(() ->
@@ -33,6 +32,5 @@ app.get('/', routes.index)
 app.post('/send', routes.newTweet)
 
 # SERVER
-
 app.listen(3000)
 console.log("Express server listening on port 3000")
