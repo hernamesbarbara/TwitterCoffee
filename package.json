@@ -11,4 +11,8 @@
     ,"jade": "*"
     ,"coffee-script": "*"
   }
+  , "devDependencies": {
+    "mocha": "*"
+    , "should": "*"
+  }
 }

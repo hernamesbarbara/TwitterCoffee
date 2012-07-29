@@ -1,5 +1,9 @@
 extends layout
 
 block content
-  h1 hello
-  p Welcome to
+  h1=header
+  p=title
+  p Number of Tweets: #{tweets.length}
+
+  include partials/_tweets
+  include partials/_form.jade

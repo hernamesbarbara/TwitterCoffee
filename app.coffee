@@ -1,7 +1,10 @@
 connect = require('connect')
 express = require('express')
 jade = require('jade')
+routes = require('./routes')
+
 app = module.exports = express.createServer()
+
 
 # CONFIGURATION
 app.configure(() ->
@@ -26,9 +29,8 @@ app.configure 'development', () ->
 app.configure 'production', () ->
   app.use(express.errorHandler())
 
-# ROUTES
-app.get '/', (req, res) ->
-  res.render('index', { locals: title: 'Hello World!' })
+app.get('/', routes.index)
+app.post('/send', routes.newTweet)
 
 # SERVER
 
