@@ -10,6 +10,7 @@
     ,"connect": "*"
     ,"jade": "*"
     ,"coffee-script": "*"
+    ,"pg": "*"
   }
   , "devDependencies": {
     "mocha": "*"
