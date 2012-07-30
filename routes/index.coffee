@@ -1,9 +1,8 @@
 Tweet = require('../models/tweet').Tweet
 tweet = new Tweet
 
-tweets = []
 exports.index = (req, res) ->
-  tweet.find_all(err, result) ->
+  tweet.find_all (err, result) ->
     if err
       console.log 'An error occurred: ' + err
     else
@@ -18,13 +17,15 @@ exports.newTweet = (req, res) ->
     tweet.find_user(req.body.tweet.username, (err, result) ->
       #find_user(username, callback)
       if err
-        console.log 'ERROR...could not find user...', err
+        console.log('ERROR...could not find user...', err)
       else
         user_id = result.rows[0].id
-
+      if user_id
+        console.log "user id is not null"
         tweet.save_tweet(user_id, req.body.tweet.content, (err, result) ->
           #save_tweet(user_id, content, callback)
           if accepts_html(req.headers['accept'])
+            console.log 'accepts html'
             res.redirect('/')
           else
             res.send({status:"OK", message: "Tweet received"})
