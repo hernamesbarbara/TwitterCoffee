@@ -10,7 +10,7 @@ class Tweet
     console.log q
     db_client.query q, callback  	
   
-  save_tweet: (user_id, content, callback) ->
+  save: (user_id, content, callback) ->
     console.log user_id, content
     db_client.query 'INSERT INTO tweets(user_id, content) VALUES($1, $2)', [user_id,content], callback
 
@@ -24,5 +24,9 @@ class User
   find_by_username: (username, callback) ->
     q = "SELECT * FROM users WHERE username = '"+username+"';"
     db_client.query q, callback
+
+  save: (username, callback) ->
+    console.log 'saving new user '+username
+    db_client.query 'INSERT INTO users(username) VALUES($1)', [username], callback
 
 exports.User = User

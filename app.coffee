@@ -4,7 +4,7 @@ jade    = require('jade')
 less = require('less')
 lessMiddleware = require('less-middleware')
 connect = require('connect')
-routes  = require('./routes')
+routes  = require('./routes/routes')
 
 app = express()
 server = http.createServer(app)
@@ -30,4 +30,6 @@ app.configure(() ->
 
 app.get('/', routes.index)
 app.post('/send', routes.newTweet)
+app.get('/signup', routes.signup)
+app.post('/signup', routes.newUser)
 
