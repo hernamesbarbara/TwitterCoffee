@@ -16,4 +16,8 @@ html
         console.log(data);
         socket.emit('my other event', { my: 'data' });
       });
-    block content
+
+    include partials/_header
+    div.container
+      block content
+      include partials/_footer

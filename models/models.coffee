@@ -15,3 +15,14 @@ class Tweet
     db_client.query 'INSERT INTO tweets(user_id, content) VALUES($1, $2)', [user_id,content], callback
 
 exports.Tweet = Tweet
+
+class User
+  find_all: (callback) ->
+    q='SELECT * FROM users;'
+    db_client.query q, callback
+
+  find_by_username: (username, callback) ->
+    q = "SELECT * FROM users WHERE username = '"+username+"';"
+    db_client.query q, callback
+
+exports.User = User

@@ -1,8 +1,11 @@
-Tweet = require('../models/tweet').Tweet
+Tweet = require('../models/models').Tweet
+User  = require('../models/models').User
+
+user = new User
 tweet = new Tweet
 
 exports.index = (req, res) ->
-  tweet.find_all (err, result) ->
+  user.find_all (err, result) ->
     if err
       console.log 'An error occurred: ' + err
     else
@@ -11,6 +14,17 @@ exports.index = (req, res) ->
         header: 'Welcome to Chirpie',
         tweets: result.rows
         host: "http://localhost"
+
+# exports.index = (req, res) ->
+#   tweet.find_all (err, result) ->
+#     if err
+#       console.log 'An error occurred: ' + err
+#     else
+#       res.render 'index'
+#         title: 'Chirpie',
+#         header: 'Welcome to Chirpie',
+#         tweets: result.rows
+#         host: "http://localhost"
 
 exports.newTweet = (req, res) ->
   if req.body and req.body.tweet

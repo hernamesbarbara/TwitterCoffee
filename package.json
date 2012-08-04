@@ -9,6 +9,8 @@
     "express": "3.0.0beta6"
     , "connect": "*"
     , "jade": "*"
+    , "less": "*"
+    , "less-middleware": "*"
     , "coffee-script": "*"
     , "pg": "*"
     , "socket.io": "*"
