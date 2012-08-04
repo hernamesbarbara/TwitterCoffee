@@ -1,16 +1,17 @@
 {
   "name": "application-name"
-  ,"version": "0.0.1"
-  ,"private": true
-  ,"scripts": {
+  , "version": "0.0.1"
+  , "private": true
+  , "scripts": {
     "start": "Sample App"
   }
-  ,"dependencies": {
+  , "dependencies": {
     "express": "3.0.0beta6"
-    ,"connect": "*"
-    ,"jade": "*"
-    ,"coffee-script": "*"
-    ,"pg": "*"
+    , "connect": "*"
+    , "jade": "*"
+    , "coffee-script": "*"
+    , "pg": "*"
+    , "socket.io": "*"
   }
   , "devDependencies": {
     "mocha": "*"

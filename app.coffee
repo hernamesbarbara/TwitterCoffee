@@ -1,11 +1,14 @@
-connect = require('connect')
-express = require('express')
+express = require("express")
+http = require("http")
 jade    = require('jade')
+connect = require('connect')
 routes  = require('./routes')
 
-app = module.exports = express.createServer()
+app = express()
+server = http.createServer(app)
+io = require("socket.io").listen(server)
+server.listen(8000)
 
-# CONFIGURATION
 app.configure(() ->
   app.set('view engine', 'jade')
   app.set('views', "#{__dirname}/views")
@@ -19,18 +22,5 @@ app.configure(() ->
   app.use(app.router)
 )
 
-app.configure 'development', () ->
-  app.use express.errorHandler({
-    dumpExceptions: true
-    showStack     : true
-  })
-
-app.configure 'production', () ->
-  app.use(express.errorHandler())
-
 app.get('/', routes.index)
 app.post('/send', routes.newTweet)
-
-# SERVER
-app.listen(3000)
-console.log("Express server listening on port 3000")

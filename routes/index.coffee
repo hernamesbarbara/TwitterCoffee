@@ -10,6 +10,7 @@ exports.index = (req, res) ->
         title: 'Chirpie',
         header: 'Welcome to Chirpie',
         tweets: result.rows
+        host: "http://localhost"
 
 exports.newTweet = (req, res) ->
   if req.body and req.body.tweet
@@ -21,11 +22,9 @@ exports.newTweet = (req, res) ->
       else
         user_id = result.rows[0].id
       if user_id
-        console.log "user id is not null"
         tweet.save_tweet(user_id, req.body.tweet.content, (err, result) ->
           #save_tweet(user_id, content, callback)
           if accepts_html(req.headers['accept'])
-            console.log 'accepts html'
             res.redirect('/')
           else
             res.send({status:"OK", message: "Tweet received"})
