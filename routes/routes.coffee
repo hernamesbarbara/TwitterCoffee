@@ -1,9 +1,10 @@
 Tweet = require('../models/models').Tweet
 User  = require('../models/models').User
+passport = require('passport')
+LocalStrategy = require("passport-local").Strategy
 
 user = new User
 tweet = new Tweet
-
 
 ###
   USERS
@@ -12,7 +13,6 @@ exports.signup = (req, res) ->
   res.render 'signup'
     title: 'Chirpie',
     header: 'Welcome to Chirpie',
-    host: "http://localhost"
 
 exports.newUser = (req, res) ->
   console.log 'inside new user'
@@ -31,6 +31,12 @@ exports.newUser = (req, res) ->
 ###
 
 exports.index = (req, res) ->
+  if req.isAuthenticated()
+    console.log 'req is isAuthenticated'
+  else
+    console.log 'req is not isAuthenticated'
+
+
   tweet.find_all (err, result) ->
     if err
       console.log 'An error occurred: ' + err
@@ -39,7 +45,6 @@ exports.index = (req, res) ->
         title: 'Chirpie',
         header: 'Welcome to Chirpie',
         tweets: result.rows
-        host: "http://localhost"
 
 exports.newTweet = (req, res) ->
   if req.body and req.body.tweet
@@ -59,6 +64,9 @@ exports.newTweet = (req, res) ->
             res.send({status:"OK", message: "Tweet received"})
         )
     )
+
+exports.login = (req, res) ->
+  res.render "login"
 
 accepts_html = (header) ->
   #returns true if content type

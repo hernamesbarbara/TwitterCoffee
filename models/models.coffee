@@ -23,10 +23,16 @@ class User
 
   find_by_username: (username, callback) ->
     q = "SELECT * FROM users WHERE username = '"+username+"';"
+    console.log q
     db_client.query q, callback
 
   save: (username, callback) ->
     console.log 'saving new user '+username
     db_client.query 'INSERT INTO users(username) VALUES($1)', [username], callback
+
+  valid_password: (password, callback) ->
+    console.log 'valid_password called in models'
+    true
+
 
 exports.User = User
