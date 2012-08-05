@@ -39,30 +39,25 @@ exports.index = (req, res) ->
 
 exports.newTweet = (req, res) ->
   if req.body and req.body.tweet
-
-    tweets.find_user(req.body.tweet.username, (err, result) ->
+    tweets.find_user req.body.tweet.username, (err, result) ->
       #find_user(username, callback)
       if err
         console.log('ERROR...could not find user...', err)
       else
         user_id = result.rows[0].id
       if user_id
-        tweets.save(user_id, req.body.tweet.content, (err, result) ->
-          #save_tweet(user_id, content, callback)
+        tweets.save user_id, req.body.tweet.content, (err, result) ->
+          #save the tweet
+          #save(user_id, content, callback)
           if accepts_html(req.headers['accept'])
             res.redirect('/')
           else
             res.send({status:"OK", message: "Tweet received"})
-        )
-    )
 
 exports.login = (req, res) ->
   if req.isAuthenticated()
     res.redirect('/')
   else
-    console.log 'req is NOT authenticated'
-    console.log req.user
-    console.log req
     res.render "login"
       user: req.user
       message: req.flash('error')

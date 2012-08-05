@@ -1,7 +1,4 @@
-p= "Welcome "+ user.username
-
-
-h3 Listing Tweets
+h3= "Listing " + tweets.length + " Tweets"
 ul#tweets
 	-for t in tweets
 		li= t.username + ' said: ' + t.content
