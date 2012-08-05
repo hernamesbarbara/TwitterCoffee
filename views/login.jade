@@ -3,9 +3,11 @@ extends layout
 block content
   h2 Welcome to Chirpie
   h3 Login
+  p= user
+  p= message
   form(method='post', action='/login')
     label Username (Your email address)
-    input(name='user[username]', length='50', type='text')
+    input(name='username', length='50', type='text')
     label Password
-    input(name='user[password]', length='20', type='text')
+    input(name='password', length='20', type='text')
     input(value='Login', type='submit')

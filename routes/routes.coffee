@@ -67,6 +67,8 @@ exports.newTweet = (req, res) ->
 
 exports.login = (req, res) ->
   res.render "login"
+    user: if req.user isnt undefined then req.user else 'unknown'
+    message: req.flash('error')
 
 accepts_html = (header) ->
   #returns true if content type

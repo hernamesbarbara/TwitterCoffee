@@ -34,5 +34,4 @@ class User
     console.log 'valid_password called in models'
     true
 
-
 exports.User = User
