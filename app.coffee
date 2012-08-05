@@ -16,7 +16,7 @@ passport.deserializeUser (id, done) ->
   findById id, (err, user) ->
     done err, user
 
-passport.use new LocalStrategy((username, password, done) ->
+passport.use new LocalStrategy (username, password, done) ->
   process.nextTick ->
     findByUsername username, (err, user) ->
       return done(err) if err
@@ -29,7 +29,6 @@ passport.use new LocalStrategy((username, password, done) ->
           message: "Invalid password"
         )
       done null, user
-)
 
 UserSchema = require('./models/models').User
 users = new UserSchema
@@ -84,4 +83,6 @@ app.post "/login", passport.authenticate("local",
 
 app.get("/logout", routes.logout)
 
-app.listen 8000
+port = process.env.PORT || 8000
+console.log("Express server listening at http://127.0.0.1:#{port}/")
+app.listen(port)
