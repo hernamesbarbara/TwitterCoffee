@@ -1,36 +1,3 @@
-users = [
-  id: 1
-  username: "bob"
-  password: "secret"
-  email: "bob@example.com"
-,
-  id: 2
-  username: "joe"
-  password: "birthday"
-  email: "joe@example.com"
-]
-
-findById = (id, fn) ->
-  idx = id - 1
-  if users[idx]
-    fn null, users[idx]
-  else
-    fn new Error("User " + id + " does not exist")
-
-findByUsername = (username, fn) ->
-  i = 0
-  len = users.length
-
-  while i < len
-    user = users[i]
-    return fn(null, user)  if user.username is username
-    i++
-  fn null, null
-
-ensureAuthenticated = (req, res, next) ->
-  return next()  if req.isAuthenticated()
-  res.redirect "/login"
-
 connect        = require('connect')
 flash          = require('connect-flash')
 express        = require("express")
@@ -51,7 +18,6 @@ passport.deserializeUser (id, done) ->
   findById id, (err, user) ->
     done err, user
 
-
 passport.use new LocalStrategy((username, password, done) ->
   console.log 'local strategy called'
   process.nextTick ->
@@ -66,9 +32,32 @@ passport.use new LocalStrategy((username, password, done) ->
           message: "Invalid password"
         )
       done null, user
-
-
 )
+
+UserSchema = require('./models/models').User
+users = new UserSchema
+
+findById = (id, fn) ->
+  users.find_by_id(id, (err, result) ->
+    if err
+      fn new Error("User " + id + " does not exist")
+    else
+      fn null, result.rows[0]
+  )
+
+findByUsername = (username, fn) ->
+  users.find_by_username(username, (err,result) ->
+    if err
+      fn new Error("ERROR from 'findByUsername' with " + username)
+    else
+      if result and result.rows.length is 1
+        return fn(null, result.rows[0])  if result.rows[0].username is username
+      fn null, null
+  )  
+
+ensureAuthenticated = (req, res, next) ->
+  return next()  if req.isAuthenticated()
+  res.redirect "/login"
 
 app = express.createServer()
 app.configure ->
@@ -85,7 +74,6 @@ app.configure ->
   app.use(lessMiddleware({src: __dirname + "/public", compress: true}))
   app.use flash()
   app.use app.router
-
 
 app.get('/', routes.index)
 app.post('/send', routes.newTweet)

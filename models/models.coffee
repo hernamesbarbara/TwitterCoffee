@@ -26,6 +26,11 @@ class User
     console.log q
     db_client.query q, callback
 
+  find_by_id: (id, callback) ->
+    q = "SELECT * FROM users WHERE id = '"+id+"';"
+    console.log q
+    db_client.query q, callback
+
   save: (username, callback) ->
     console.log 'saving new user '+username
     db_client.query 'INSERT INTO users(username) VALUES($1)', [username], callback
