@@ -1,6 +1,7 @@
 connect        = require('connect')
 flash          = require('connect-flash')
 express        = require("express")
+http = require("http")
 passport       = require("passport")
 jade           = require('jade')
 less           = require('less')
@@ -8,6 +9,20 @@ lessMiddleware = require('less-middleware')
 util           = require("util")
 LocalStrategy  = require("passport-local").Strategy
 routes         = require('./routes/routes')
+app            = express()
+server         = http.createServer(app)
+io             = require("socket.io").listen(server)
+
+port = process.env.PORT || 8000
+console.log("Express server listening at http://127.0.0.1:#{port}/")
+server.listen(port)
+
+io.sockets.on "connection", (socket) ->
+  socket.emit "news",
+    hello: "world"
+
+  socket.on "my other event", (data) ->
+    console.log data
 
 passport.serializeUser (user, done) ->
   done null, user.id
@@ -53,7 +68,6 @@ ensureAuthenticated = (req, res, next) ->
   return next()  if req.isAuthenticated()
   res.redirect "/login"
 
-app = express.createServer()
 app.configure ->
   app.set "views", __dirname + "/views"
   app.set('view engine', 'jade')
@@ -82,7 +96,3 @@ app.post "/login", passport.authenticate("local",
   res.redirect "/"
 
 app.get("/logout", routes.logout)
-
-port = process.env.PORT || 8000
-console.log("Express server listening at http://127.0.0.1:#{port}/")
-app.listen(port)
