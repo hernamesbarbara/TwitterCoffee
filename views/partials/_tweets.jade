@@ -1,2 +1,7 @@
--for t in tweets
-	p= t.username + ' said: ' + t.content
+p= "Welcome "+ user.username
+
+
+h3 Listing Tweets
+ul#tweets
+	-for t in tweets
+		li= t.username + ' said: ' + t.content

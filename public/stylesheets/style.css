@@ -59,6 +59,10 @@ h2 {
   color: #999;
 }
 
+h2.left {
+  text-align: left;
+}
+
 p {
   font-size: 1.1em;
   line-height: 1.7em;

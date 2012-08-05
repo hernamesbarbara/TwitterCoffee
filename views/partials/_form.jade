@@ -1,7 +1,6 @@
-h2 What's happening?
-form(method='post', action='/send')
-	label Name
-	input(name='tweet[username]', length='50', type='text')
-	label Content
-	input(name='tweet[content]', length='140', type='text')
-	input(value='Tweet', type='submit')
+h2.left What's happening?
+form.form-horizontal.controls(method='post', action='/send')
+	input(type="hidden", name='tweet[username]', value='#{user.username}')
+	textarea.input-xlarge(name='tweet[content]', length='140', type='textarea', rows='3')
+	div.form-actions
+		input(value='Tweet', type='submit')
