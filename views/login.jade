@@ -4,9 +4,4 @@ block content
   h2 Welcome to Chirpie
   h3 Login
   p= message
-  form(method='post', action='/login')
-    label Username (Your email address)
-    input(name='username', length='50', type='text')
-    label Password
-    input(name='password', length='20', type='text')
-    input(value='Login', type='submit')
+  include partials/_newSession

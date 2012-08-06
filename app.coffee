@@ -11,18 +11,20 @@ LocalStrategy  = require("passport-local").Strategy
 routes         = require('./routes/routes')
 app            = express()
 server         = http.createServer(app)
-io             = require("socket.io").listen(server)
+#io             = require("socket.io").listen(server)
 
 port = process.env.PORT || 8000
 console.log("Express server listening at http://127.0.0.1:#{port}/")
+console.log("You're in your #{app.settings.env} environment")
 server.listen(port)
 
-io.sockets.on "connection", (socket) ->
-  socket.emit "news",
-    hello: "world"
 
-  socket.on "my other event", (data) ->
-    console.log data
+# io.sockets.on "connection", (socket) ->
+#   socket.emit "news",
+#     hello: "world"
+
+#   socket.on "my other event", (data) ->
+#     console.log data
 
 passport.serializeUser (user, done) ->
   done null, user.id

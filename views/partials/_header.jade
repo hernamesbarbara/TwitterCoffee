@@ -8,8 +8,12 @@ header.navbar.navbar-fixed-top
             a#home(href='/') Home
           li
             a#about(href='/about') About
-          li
-            -if(user)
+          
+          - if (user)
+            li
               a#logout(href='/logout') Logout
-            -else
+          - else
+            li
               a#login(href='/login') Login
+            li
+              a#login(href='/signup') Signup

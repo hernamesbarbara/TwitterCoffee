@@ -1,0 +1,8 @@
+form(method='post', action='/signup')
+  include _formErrors
+  label Username (Your email address)
+  input(name='user[username]', length='50', type='text')
+  label Password
+  input(name='user[password]', length='20', type='password')
+  div.form-actions
+    input(value='Signup', type='submit')

@@ -1,0 +1,6 @@
+- if (message.length > 0)
+	#error_explanation
+		.alert.alert-error
+			ul
+			- for error in message
+				li= error

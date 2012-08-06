@@ -3,7 +3,4 @@ extends layout
 block content
   h2 Welcome to Chirpie
   h3 Signup
-  form(method='post', action='/signup')
-    label Username (Your email address)
-    input(name='user[username]', length='50', type='text')
-    input(value='Signup', type='submit')
+  include partials/_signup

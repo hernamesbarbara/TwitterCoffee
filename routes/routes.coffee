@@ -12,12 +12,24 @@ exports.signup = (req, res) ->
   res.render 'signup'
     title: 'Chirpie',
     header: 'Welcome to Chirpie',
+    user: req.user,
+    message: req.flash('error')
 
 exports.newUser = (req, res) ->
+  console.log 'inside newUser'
   if req.body and req.body.user
-    users.save(req.body.user.username, (err, result) ->
+    console.log  req.body.user.password
+    users.save(req.body.user.username, req.body.user.password, (err, result) ->
+      if err
+        console.log err
+        switch err.code
+          when "23514" then message = "Invalid email format"
+          else message = "Please enter a valid username and password"
+        req.flash('error', message)
+        res.redirect('/signup')
+        
       #save the user and redirect to root_path
-      if accepts_html(req.headers['accept'])
+      else if accepts_html(req.headers['accept'])
         res.redirect('/')
       else
         res.send({status:"OK", message: "User received"})
