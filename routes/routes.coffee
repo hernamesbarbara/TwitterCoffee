@@ -21,13 +21,12 @@ exports.newUser = (req, res) ->
     console.log  req.body.user.password
     users.save(req.body.user.username, req.body.user.password, (err, result) ->
       if err
-        console.log err
-        switch err.code
-          when "23514" then message = "Invalid email format"
+        switch err.validation
+          when "email_format" then message = "Username must be a valid email address."
+          when "duplicate_user" then message = "Username already taken. Try logging in instead."
           else message = "Please enter a valid username and password"
         req.flash('error', message)
         res.redirect('/signup')
-        
       #save the user and redirect to root_path
       else if accepts_html(req.headers['accept'])
         res.redirect('/')
@@ -84,3 +83,4 @@ accepts_html = (header) ->
   attrs = header.split(",")
   included = 'text/html' in attrs
   return included
+

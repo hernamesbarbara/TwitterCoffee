@@ -84,6 +84,14 @@ app.configure ->
   app.use(lessMiddleware({src: __dirname + "/public", compress: true}))
   app.use flash()
   app.use app.router
+  app.use (req, res, next) ->
+    res.render "404.jade",
+      title: "404 - Page Not Found"
+      showFullNav: false
+      status: 404
+      url: req.url
+
+
 
 app.get('/', routes.index)
 app.post('/send', routes.newTweet)
