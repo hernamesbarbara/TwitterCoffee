@@ -1,6 +1,6 @@
 TweetSchema = require('../models/models').Tweet
 UserSchema  = require('../models/models').User
-
+passport    = require("passport")
 
 users = new UserSchema
 tweets = new TweetSchema
@@ -18,7 +18,6 @@ exports.signup = (req, res) ->
 exports.newUser = (req, res) ->
   console.log 'inside newUser'
   if req.body and req.body.user
-    console.log  req.body.user.password
     users.save(req.body.user.username, req.body.user.password, (err, result) ->
       if err
         switch err.validation
@@ -29,6 +28,7 @@ exports.newUser = (req, res) ->
         res.redirect('/signup')
       #save the user and redirect to root_path
       else if accepts_html(req.headers['accept'])
+        req.flash('success', "Welcome to Chirpie!")
         res.redirect('/')
       else
         res.send({status:"OK", message: "User received"})
@@ -45,6 +45,7 @@ exports.index = (req, res) ->
           header: 'Welcome to Chirpie',
           user: req.user,
           tweets: result.rows
+          message: req.flash('success')
   else
     res.redirect('/login')
 

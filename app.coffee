@@ -10,7 +10,7 @@ util           = require("util")
 LocalStrategy  = require("passport-local").Strategy
 routes         = require('./routes/routes')
 app            = express()
-server         = http.createServer(app)
+server = module.exports = http.createServer(app)
 #io             = require("socket.io").listen(server)
 
 port = process.env.PORT || 8000
