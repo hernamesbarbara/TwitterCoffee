@@ -7,6 +7,5 @@
 - authentication: passport
 - template: jade
 - stylesheets: less
-- styles: twitter bootstrap
+- styles: twitterbootstrap
 =================
-
