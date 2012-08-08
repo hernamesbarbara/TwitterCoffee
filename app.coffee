@@ -1,7 +1,7 @@
 connect        = require('connect')
 flash          = require('connect-flash')
 express        = require("express")
-http = require("http")
+http           = require("http")
 passport       = require("passport")
 jade           = require('jade')
 less           = require('less')
