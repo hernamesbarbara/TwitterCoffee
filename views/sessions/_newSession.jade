@@ -1,4 +1,5 @@
 form(method='post', action='/login')
+  include ../shared/_formErrors
   label Username (Your email address)
   input(name='username', length='50', type='text')
   label Password
