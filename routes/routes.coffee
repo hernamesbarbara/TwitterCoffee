@@ -15,24 +15,23 @@ exports.signup = (req, res) ->
     user: req.user,
     message: req.flash('error')
 
-exports.newUser = (req, res) ->
-  console.log 'inside newUser'
+exports.newUser = (req, res, next) ->
   if req.body and req.body.user
-    users.save(req.body.user.username, req.body.user.password, (err, result) ->
-      if err
-        switch err.validation
+    users.save req.body.user.username, req.body.user.password, (user) ->
+      if user.invalid
+        switch user.validation
           when "email_format" then message = "Username must be a valid email address."
           when "duplicate_user" then message = "Username already taken. Try logging in instead."
           else message = "Please enter a valid username and password"
         req.flash('error', message)
         res.redirect('/signup')
-      #save the user and redirect to root_path
-      else if accepts_html(req.headers['accept'])
-        req.flash('success', "Welcome to Chirpie!")
-        res.redirect('/')
       else
-        res.send({status:"OK", message: "User received"})
-    )
+        if accepts_html(req.headers['accept'])
+          req.flash('success', "Welcome to Chirpie!")
+          req.login(user, next)
+          res.redirect('/')
+        else
+          res.send({status:"OK", message: "User received"})
 
 exports.index = (req, res) ->
   if req.isAuthenticated()
