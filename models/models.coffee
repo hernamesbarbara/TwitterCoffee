@@ -17,7 +17,7 @@ class Tweet
     console.log '\n'+'**NEW TWEET**\nUSER ID: '+user_id+'\nCONTENT '+content+'\n'
     db_client.query 'INSERT INTO tweets(user_id, content) VALUES($1, $2)', [user_id,content], callback
 
-exports.Tweet = Tweet
+exports.TweetSchema = Tweet
 
 class User
   find_all: (callback) ->
@@ -40,26 +40,26 @@ class User
       else
         #SAVE THE USER
         db_client.query 'INSERT INTO users(username, password) VALUES($1, $2)', [username, password]
-        
-        #RETURN THE USER
-        db_client.query "SELECT * FROM users WHERE username = '"+username+"';", (err, result) ->
+        new User().find_by_username username, (err, result) ->
           if err then callback(err)
           else
             user = result.rows[0]
             callback(user)
 
   validate:(username, password, fn) ->
+    #USERNAME MUST BE IN FORMAT <FOO@BAR.COM>
     if not validEmail(username) 
       fn({error:{reason: "email_format"}})
 
-    else this.is_unique username, (isUnique) ->
-      if isUnique
+    #USERNAMES MUST BE UNIQUE
+    else this.ensure_unique username, (unique) ->
+      if unique
         fn()
       else
         fn({error:{reason: "duplicate_user"}})
 
 
-  is_unique: (username, callback) ->
+  ensure_unique: (username, callback) ->
     this.find_by_username username, (err, result) ->
 
       if err
@@ -69,4 +69,4 @@ class User
       else
         return callback(true)
 
-exports.User = User
+exports.UserSchema = User

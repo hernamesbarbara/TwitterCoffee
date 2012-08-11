@@ -47,18 +47,18 @@ passport.use new LocalStrategy (username, password, done) ->
         )
       done null, user
 
-UserSchema = require('./models/models').User
-users = new UserSchema
+UserSchema = require('./models/models').UserSchema
+Users = new UserSchema
 
 findById = (id, fn) ->
-  users.find_by_id id, (err, result) ->
+  Users.find_by_id id, (err, result) ->
     if err
       fn new Error("User " + id + " does not exist")
     else
       fn null, result.rows[0]
 
 findByUsername = (username, fn) ->
-  users.find_by_username username, (err,result) ->
+  Users.find_by_username username, (err,result) ->
     if err
       fn new Error("ERROR from 'findByUsername' with " + username)
     else

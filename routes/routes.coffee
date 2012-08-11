@@ -1,9 +1,9 @@
-TweetSchema = require('../models/models').Tweet
-UserSchema  = require('../models/models').User
+TweetSchema = require('../models/models').TweetSchema
+UserSchema  = require('../models/models').UserSchema
 passport    = require("passport")
 
-users = new UserSchema
-tweets = new TweetSchema
+Users = new UserSchema
+Tweets = new TweetSchema
 
 ###
   USERS
@@ -17,7 +17,7 @@ exports.signup = (req, res) ->
 
 exports.newUser = (req, res, next) ->
   if req.body and req.body.user
-    users.save req.body.user.username, req.body.user.password, (user) ->
+    Users.save req.body.user.username, req.body.user.password, (user) ->
       if user.error
         switch user.error.reason
           when "email_format" then message = "Username must be a valid email address."
@@ -35,7 +35,7 @@ exports.newUser = (req, res, next) ->
 
 exports.index = (req, res) ->
   if req.isAuthenticated()
-    tweets.find_all (err, result) ->
+    Tweets.find_all (err, result) ->
       if err
         console.log 'An error occurred: ' + err
       else
@@ -50,14 +50,14 @@ exports.index = (req, res) ->
 
 exports.newTweet = (req, res) ->
   if req.body and req.body.tweet
-    tweets.find_user req.body.tweet.username, (err, result) ->
+    Tweets.find_user req.body.tweet.username, (err, result) ->
       #find_user(username, callback)
       if err
         console.log('ERROR...could not find user...', err)
       else
         user_id = result.rows[0].id
       if user_id
-        tweets.save user_id, req.body.tweet.content, (err, result) ->
+        Tweets.save user_id, req.body.tweet.content, (err, result) ->
           #save the tweet
           #save(user_id, content, callback)
           if accepts_html(req.headers['accept'])
