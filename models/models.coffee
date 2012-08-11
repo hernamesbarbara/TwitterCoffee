@@ -1,6 +1,6 @@
 db_client = require('../db')
 
-valid_email = (email) ->
+validEmail = (email) ->
   re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
   re.test email
 
@@ -11,7 +11,7 @@ class Tweet
   
   find_user: (username, callback) ->
     q = "SELECT * FROM users WHERE username = '"+username+"';"
-    db_client.query q, callback  	
+    db_client.query q, callback   
   
   save: (user_id, content, callback) ->
     console.log '\n'+'**NEW TWEET**\nUSER ID: '+user_id+'\nCONTENT '+content+'\n'
@@ -33,36 +33,40 @@ class User
     db_client.query q, callback
 
   save: (username, password, callback) ->
-    if valid_email(username)
-      this.unique_email username, (email) ->
-        if email.duplicate or email.err
-          err = {invalid: true, validation: "duplicate_user"}
-          callback(err)
-        else
-          db_client.query 'INSERT INTO users(username, password) VALUES($1, $2)', [username, password]
-          db_client.query "SELECT * FROM users WHERE username = '"+username+"';", (err, result) ->
-            if err
-              callback(err)
-            else
-              user = result.rows[0]
-              callback(user)
-    else 
-      err = {invalid: true, validation: "email_format"}
-      callback(err)
 
-  unique_email: (username, callback) ->
-    this.find_by_username username, (err,result) ->
-      if err
-        callback({err: true})
-      else if result.rows.length isnt 0
-        callback({duplicate: true})
+    this.validate username, password, (err) -> 
+      if err then callback(err)
+
       else
-        callback({duplicate: false})
+        #SAVE THE USER
+        db_client.query 'INSERT INTO users(username, password) VALUES($1, $2)', [username, password]
+        
+        #RETURN THE USER
+        db_client.query "SELECT * FROM users WHERE username = '"+username+"';", (err, result) ->
+          if err then callback(err)
+          else
+            user = result.rows[0]
+            callback(user)
 
-  valid_password: (password, callback) ->
-    if password.length < 5
-      callback()
-    else 
-    callback()
+  validate:(username, password, fn) ->
+    if not validEmail(username) 
+      fn({error:{reason: "email_format"}})
+
+    else this.is_unique username, (isUnique) ->
+      if isUnique
+        fn()
+      else
+        fn({error:{reason: "duplicate_user"}})
+
+
+  is_unique: (username, callback) ->
+    this.find_by_username username, (err, result) ->
+
+      if err
+        return callback(false)
+      else if result and result.rows and result.rows.length > 0
+        return callback(false)
+      else
+        return callback(true)
 
 exports.User = User

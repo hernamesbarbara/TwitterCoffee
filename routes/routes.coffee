@@ -18,8 +18,8 @@ exports.signup = (req, res) ->
 exports.newUser = (req, res, next) ->
   if req.body and req.body.user
     users.save req.body.user.username, req.body.user.password, (user) ->
-      if user.invalid
-        switch user.validation
+      if user.error
+        switch user.error.reason
           when "email_format" then message = "Username must be a valid email address."
           when "duplicate_user" then message = "Username already taken. Try logging in instead."
           else message = "Please enter a valid username and password"
@@ -83,4 +83,3 @@ accepts_html = (header) ->
   attrs = header.split(",")
   included = 'text/html' in attrs
   return included
-

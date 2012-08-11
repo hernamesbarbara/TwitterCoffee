@@ -34,7 +34,6 @@ passport.deserializeUser (id, done) ->
     done err, user
 
 passport.use new LocalStrategy (username, password, done) ->
-  console.log 'local strategy called in app.coffee'
   process.nextTick ->
     findByUsername username, (err, user) ->
       return done(err) if err
@@ -46,7 +45,6 @@ passport.use new LocalStrategy (username, password, done) ->
         return done(null, false,
           message: "Invalid password"
         )
-      console.log user
       done null, user
 
 UserSchema = require('./models/models').User
@@ -93,8 +91,6 @@ app.configure ->
       status: 404
       url: req.url
 
-
-
 app.get('/', routes.index)
 app.post('/send', routes.newTweet)
 app.get('/signup', routes.signup)
@@ -105,7 +101,6 @@ app.post "/login", passport.authenticate("local",
   failureRedirect: "/login"
   failureFlash: true
 ), (req, res) ->
-  console.log req
   res.redirect "/"
 
 app.get("/logout", routes.logout)
