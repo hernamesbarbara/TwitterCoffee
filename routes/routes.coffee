@@ -17,9 +17,9 @@ exports.signup = (req, res) ->
 
 exports.newUser = (req, res, next) ->
   if req.body and req.body.user
-    Users.save req.body.user.username, req.body.user.password, (user) ->
-      if user.error
-        switch user.error.reason
+    Users.save req.body.user.username, req.body.user.password, (err, user) ->
+      if err
+        switch err.reason
           when "email_format" then message = "Username must be a valid email address."
           when "duplicate_user" then message = "Username already taken. Try logging in instead."
           else message = "Please enter a valid username and password"
@@ -48,20 +48,26 @@ exports.index = (req, res) ->
   else
     res.redirect('/login')
 
-exports.newTweet = (req, res) ->
+exports.newTweet = (req, res, next) ->
   if req.body and req.body.tweet
-    Tweets.find_user req.body.tweet.username, (err, result) ->
+    Users.find_by_username req.body.tweet.username, (err, result) ->
       #find_user(username, callback)
       if err
         console.log('ERROR...could not find user...', err)
       else
         user_id = result.rows[0].id
       if user_id
-        Tweets.save user_id, req.body.tweet.content, (err, result) ->
-          #save the tweet
-          #save(user_id, content, callback)
-          if accepts_html(req.headers['accept'])
+        Tweets.save user_id, req.body.tweet.content, (err, tweet) ->
+          if err
+            switch err.reason
+              when 'length_over_140' then message = "Tweets must be 140 characters of less"
+              when 'no_user_id_provided' then message = "Unknown user..."
+              else message = "something went wrong..."
+            req.flash('success', message)
             res.redirect('/')
+          else if accepts_html(req.headers['accept'])
+              req.flash('success', "Saved")
+              res.redirect('/')
           else
             res.send({status:"OK", message: "Tweet received"})
 

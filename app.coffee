@@ -92,6 +92,7 @@ app.configure ->
       url: req.url
 
 app.get('/', routes.index)
+app.get('/home', routes.index)
 app.post('/send', routes.newTweet)
 app.get('/signup', routes.signup)
 app.post('/signup', routes.newUser)
