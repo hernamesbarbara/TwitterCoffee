@@ -67,9 +67,12 @@ findByUsername = (username, fn) ->
       fn(null, null)
 
 ensureAuthenticated = (req, res, next) ->
-  console.log 'ensureAuthenticated called'
   return next()  if req.isAuthenticated()
   res.redirect("/login")
+
+ignoreIfAuthenticated = (req, res, next) ->
+  return next()  if not req.isAuthenticated()
+  res.redirect("/")
 
 app.configure ->
   app.set "views", __dirname + "/views"
@@ -95,9 +98,9 @@ app.configure ->
 app.get('/', ensureAuthenticated, routes.index)
 app.get('/home', ensureAuthenticated, routes.index)
 app.post('/send', ensureAuthenticated, routes.newTweet)
-app.get('/signup', routes.signup)
-app.post('/signup', routes.newUser)
-app.get('/login', routes.login)
+app.get('/signup', ignoreIfAuthenticated, routes.signup)
+app.post('/signup', ignoreIfAuthenticated, routes.newUser)
+app.get('/login', ignoreIfAuthenticated, routes.login)
 
 app.post "/login", passport.authenticate("local",
   failureRedirect: "/login"

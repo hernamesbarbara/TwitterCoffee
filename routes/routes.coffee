@@ -8,6 +8,11 @@ Tweets = new TweetSchema
 ###
   USERS
 ###
+exports.login = (req, res) ->
+  res.render "login"
+    user: req.user
+    message: req.flash('error')
+
 exports.signup = (req, res) ->
   res.render 'signup'
     title: 'Chirpie',
@@ -116,14 +121,6 @@ exports.newTweet = (req, res, next) ->
               res.redirect('/')
           else
             res.send({status:"OK", message: "Tweet received"})
-
-exports.login = (req, res) ->
-  if req.isAuthenticated()
-    res.redirect('/')
-  else
-    res.render "login"
-      user: req.user
-      message: req.flash('error')
 
 exports.logout = (req, res) ->
   req.logout()
