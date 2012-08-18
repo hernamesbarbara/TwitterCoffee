@@ -91,6 +91,13 @@ class User
     q = "SELECT t.* FROM tweets t INNER JOIN users u ON u.id = t.user_id WHERE t.user_id = '"+user_id+"';"
     db_client.query q, callback
 
+  followers: (user_id, callback) ->
+    q = "SELECT followers.* FROM users u INNER JOIN relationships r ON r.followed_id = u.id INNER JOIN users followers ON r.follower_id = followers.id WHERE u.id = '"+user_id+"';"
+    db_client.query q, callback
+
+  following: (user_id, callback) ->
+    return
+
   beforeSave:(username, password, fn) ->
     #USERNAME MUST BE IN FORMAT <FOO@BAR.COM>
     if not validEmail(username) 

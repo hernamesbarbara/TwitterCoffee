@@ -53,22 +53,31 @@ exports.userShow = (req, res, next) ->
         showFullNav: false,
         status: 404,
         url: req.url
-    else
-      user = result.rows[0]
+    
+    user = result.rows[0]
+
+    if(user and user.id and user.id isnt undefined)
+
       Users.tweets_for user.id, (err, result) ->
-        if err
-          user.tweets = []
-          res.render 'user_show'
-            title: 'Show user page',
-            header: 'show user header',
-            user: user
-        else
-          user.tweets = result.rows
-          console.log 'user =>\n',user
-          res.render 'user_show'
-            title: 'Show user page',
-            header: 'show user header',
-            user: user
+        if err then user.tweets = []
+        user.tweets = result.rows
+        console.log '...\nwith tweets...\nuser =>\n',user
+
+      Users.followers user.id, (err, result) ->
+        if err then user.followers = []
+        user.followers = result.rows
+        console.log '...\nwith followers...\nuser =>\n',user
+
+        res.render 'user_show'
+          title: 'Show user page',
+          header: 'show user header',
+          user: user
+    else
+      res.render "404.jade",
+        title: "404 - Page Not Found",
+        showFullNav: false,
+        status: 404,
+        url: req.url
 
 exports.newUser = (req, res, next) ->
   if req.body and req.body.user
