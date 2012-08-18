@@ -15,6 +15,56 @@ exports.signup = (req, res) ->
     user: req.user,
     message: req.flash('error')
 
+exports.usersIndex = (req, res) ->
+  Users.find_all (err, result) ->
+    if err
+      users = []
+      res.render 'users_index'
+        title: 'Chirpie Users',
+        header: 'header....',
+        user: req.user,
+        users: users,
+        message: req.flash('error')
+    else
+      users = result.rows
+      res.render 'users_index'
+        title: 'Chirpie Users',
+        header: 'header....',
+        user: req.user,
+        users: users,
+        message: req.flash('error')
+
+exports.userShow = (req, res, next) ->
+  unless req.params.id
+    res.render "404.jade",
+      title: "404 - Page Not Found",
+      showFullNav: false,
+      status: 404,
+      url: req.url
+  Users.find_by_id req.params.id, (err, result) ->
+    if err
+      res.render "404.jade",
+        title: "404 - Page Not Found",
+        showFullNav: false,
+        status: 404,
+        url: req.url
+    else
+      user = result.rows[0]
+      Users.tweets_for user.id, (err, result) ->
+        if err
+          user.tweets = []
+          res.render 'user_show'
+            title: 'Show user page',
+            header: 'show user header',
+            user: user
+        else
+          user.tweets = result.rows
+          console.log 'user =>\n',user
+          res.render 'user_show'
+            title: 'Show user page',
+            header: 'show user header',
+            user: user
+
 exports.newUser = (req, res, next) ->
   if req.body and req.body.user
     Users.save req.body.user.username, req.body.user.password, (err, user) ->
@@ -55,6 +105,7 @@ exports.newTweet = (req, res, next) ->
         Tweets.save user_id, req.body.tweet.content, (err, tweet) ->
           if err
             switch err.reason
+              when 'content_length_is_zero' then message = 'Tweets must have content!'
               when 'length_over_140' then message = "Tweets must be 140 characters of less"
               when 'no_user_id_provided' then message = "Unknown user..."
               else message = "something went wrong..."

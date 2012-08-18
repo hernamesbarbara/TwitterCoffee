@@ -1,0 +1,12 @@
+extends layout
+
+block content
+  -if(users.length == 1)
+    h3= "Listing 1 User"
+  -else
+    h3= "Listing " + users.length + " Users"
+  ul.users
+    -for user in users
+      li
+        img(id='user_'+user.id, src='./../images/tim.png', style='width:100px;height:100px;')
+        a(href='/users/'+user.id)= user.username

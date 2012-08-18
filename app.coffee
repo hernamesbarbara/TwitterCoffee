@@ -106,3 +106,6 @@ app.post "/login", passport.authenticate("local",
   res.redirect "/"
 
 app.get("/logout", routes.logout)
+
+app.get('/users', ensureAuthenticated, routes.usersIndex)
+app.get('/users/:id', ensureAuthenticated, routes.userShow);

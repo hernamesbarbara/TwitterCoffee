@@ -21,16 +21,19 @@ class Tweet
         db_client.query 'INSERT INTO tweets(user_id, content) VALUES($1, $2)', [user_id,content]
         
         #RETURN THE NEW TWEET IF SAVED SUCCESSFULLY
-        q="SELECT t.* FROM tweets t INNER JOIN users u ON u.id = t.user_id WHERE u.id = '"+user_id+"' ORDER BY t.created_at DESC LIMIT 1;"
+        q="SELECT t.* FROM tweets t INNER JOIN users u ON t.user_id = u.id WHERE t.user_id = '"+user_id+"' ORDER BY t.created_at DESC LIMIT 1;"
         db_client.query q, (err, result) ->
           if err
             callback(err, null)
           else
+            console.log '\n'+'**This should be the same as the new tweet**\n',result.rows[0]
             tweet = result.rows[0]
             callback(null, tweet)
 
   beforeSave:(user_id, content, fn) ->
-    if content.length > 140
+    if content.length < 1
+      fn({reason: "content_length_is_zero"})
+    else if content.length > 140
       fn({reason: "length_over_140"})
     else unless user_id
       fn({reason: "no_user_id_provided"})
@@ -83,6 +86,10 @@ class User
           else
             user = result.rows[0]
             callback(null, user)
+
+  tweets_for: (user_id, callback) ->
+    q = "SELECT t.* FROM tweets t INNER JOIN users u ON u.id = t.user_id WHERE t.user_id = '"+user_id+"';"
+    db_client.query q, callback
 
   beforeSave:(username, password, fn) ->
     #USERNAME MUST BE IN FORMAT <FOO@BAR.COM>

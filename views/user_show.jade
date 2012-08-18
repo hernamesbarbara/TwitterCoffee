@@ -1,0 +1,12 @@
+extends layout
+
+block content
+	-if(user)
+		img(id='user_'+user.id, src='./../images/tim.png', style='width:150px;height:150px;')
+		p Show user page for: #{user.username}
+	
+	div.span8
+		- if(user && user.tweets)
+			include ./partials/_user_feed
+		- else
+			p This user does not have tweets or tweets not sent to this view...

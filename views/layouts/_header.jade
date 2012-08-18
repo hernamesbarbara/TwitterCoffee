@@ -11,6 +11,8 @@ header.navbar.navbar-fixed-top
           
           - if (user)
             li
+              a#users_show(href='/users') Users
+            li
               a#logout(href='/logout') Logout
           - else
             li
