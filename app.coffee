@@ -27,11 +27,11 @@ server.listen(port)
 #     console.log data
 
 passport.serializeUser (user, done) ->
-  done null, user.id
+  done(null, user.id)
 
 passport.deserializeUser (id, done) ->
   findById id, (err, user) ->
-    done err, user
+    done(err, user)
 
 passport.use new LocalStrategy (username, password, done) ->
   process.nextTick ->
@@ -53,22 +53,23 @@ Users = new UserSchema
 findById = (id, fn) ->
   Users.find_by_id id, (err, result) ->
     if err
-      fn new Error("User " + id + " does not exist")
+      fn(new Error("User " + id + " does not exist"))
     else
-      fn null, result.rows[0]
+      fn(null, result.rows[0])
 
 findByUsername = (username, fn) ->
   Users.find_by_username username, (err,result) ->
     if err
-      fn new Error("ERROR from 'findByUsername' with " + username)
+      fn(new Error("ERROR from 'findByUsername' with " + username))
     else
       if result and result.rows.length is 1
-        return fn(null, result.rows[0])  if result.rows[0].username is username
-      fn null, null
+        return fn(null, result.rows[0]) if result.rows[0].username is username
+      fn(null, null)
 
 ensureAuthenticated = (req, res, next) ->
+  console.log 'ensureAuthenticated called'
   return next()  if req.isAuthenticated()
-  res.redirect "/login"
+  res.redirect("/login")
 
 app.configure ->
   app.set "views", __dirname + "/views"
@@ -91,9 +92,9 @@ app.configure ->
       status: 404
       url: req.url
 
-app.get('/', routes.index)
-app.get('/home', routes.index)
-app.post('/send', routes.newTweet)
+app.get('/', ensureAuthenticated, routes.index)
+app.get('/home', ensureAuthenticated, routes.index)
+app.post('/send', ensureAuthenticated, routes.newTweet)
 app.get('/signup', routes.signup)
 app.post('/signup', routes.newUser)
 app.get('/login', routes.login)

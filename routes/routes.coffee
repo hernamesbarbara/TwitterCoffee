@@ -25,35 +25,30 @@ exports.newUser = (req, res, next) ->
           else message = "Please enter a valid username and password"
         req.flash('error', message)
         res.redirect('/signup')
+      else if accepts_html(req.headers['accept'])
+        req.flash('success', "Welcome to Chirpie!")
+        req.login(user, next)
+        res.redirect('/')
       else
-        if accepts_html(req.headers['accept'])
-          req.flash('success', "Welcome to Chirpie!")
-          req.login(user, next)
-          res.redirect('/')
-        else
-          res.send({status:"OK", message: "User received"})
+        res.send({status:"OK", message: "User received"})
 
 exports.index = (req, res) ->
-  if req.isAuthenticated()
-    Tweets.find_all (err, result) ->
-      if err
-        console.log 'An error occurred: ' + err
-      else
-        res.render 'index'
-          title: 'Chirpie',
-          header: 'Welcome to Chirpie',
-          user: req.user,
-          tweets: result.rows
-          message: req.flash('success')
-  else
-    res.redirect('/login')
+  Tweets.find_all (err, result) ->
+    if err
+      console.log 'An error occurred: ' + err
+    else
+      res.render 'index'
+        title: 'Chirpie',
+        header: 'Welcome to Chirpie',
+        user: req.user,
+        tweets: result.rows
+        message: req.flash('success')
 
 exports.newTweet = (req, res, next) ->
   if req.body and req.body.tweet
     Users.find_by_username req.body.tweet.username, (err, result) ->
-      #find_user(username, callback)
       if err
-        console.log('ERROR...could not find user...', err)
+        console.log('ERROR...could not find user...\n', err)
       else
         user_id = result.rows[0].id
       if user_id
@@ -84,8 +79,6 @@ exports.logout = (req, res) ->
   res.redirect "/"
 
 accepts_html = (header) ->
-  #returns true if content type
-  #requested is html
   attrs = header.split(",")
   included = 'text/html' in attrs
   return included
