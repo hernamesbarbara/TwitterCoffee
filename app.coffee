@@ -67,12 +67,35 @@ findByUsername = (username, fn) ->
       fn(null, null)
 
 ensureAuthenticated = (req, res, next) ->
-  return next()  if req.isAuthenticated()
+  return next() if req.isAuthenticated()
   res.redirect("/login")
 
 ignoreIfAuthenticated = (req, res, next) ->
-  return next()  if not req.isAuthenticated()
+  return next() if not req.isAuthenticated()
   res.redirect("/")
+
+loadUser = (req, res, next) ->
+  id = req.params.id
+  
+  Users.find_by_id id, (err, result) ->
+    
+    if(err)
+      res.render "404.jade",
+        title: "404 - Page Not Found",
+        showFullNav: false,
+        status: 404,
+        url: req.url
+
+    else if result and result.rows and result.rows.length == 1
+      req.loaded_user = result.rows[0]
+      next()
+    
+    else
+      res.render "404.jade",
+        title: "404 - Page Not Found",
+        showFullNav: false,
+        status: 404,
+        url: req.url
 
 app.configure ->
   app.set "views", __dirname + "/views"
@@ -97,8 +120,8 @@ app.configure ->
 
 app.get('/about', routes.about)
 
-app.get('/', ensureAuthenticated, routes.index)
-app.get('/home', ensureAuthenticated, routes.index)
+app.get('/', ensureAuthenticated, routes.home)
+app.get('/home', ensureAuthenticated, routes.home)
 app.post('/send', ensureAuthenticated, routes.newTweet)
 app.get('/signup', ignoreIfAuthenticated, routes.newUser)
 app.post('/signup', ignoreIfAuthenticated, routes.createUser)
@@ -113,4 +136,4 @@ app.post "/login", passport.authenticate("local",
 app.get("/logout", routes.logout)
 
 app.get('/users', ensureAuthenticated, routes.usersIndex)
-app.get('/users/:id', ensureAuthenticated, routes.showUser);
+app.get('/users/:id', ensureAuthenticated, loadUser, routes.showUser);

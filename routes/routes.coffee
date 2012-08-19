@@ -1,27 +1,30 @@
 TweetSchema = require('../models/models').TweetSchema
 UserSchema  = require('../models/models').UserSchema
-passport    = require("passport")
-
-Users = new UserSchema
-Tweets = new TweetSchema
+passport    = require('passport')
+Users       = new UserSchema
+Tweets      = new TweetSchema
 
 ###
   USERS
 ###
+
+
 exports.login = (req, res) ->
   res.render "./sessions/login"
-    user: req.user
-    message: req.flash('error')
+    user: req.user,
+    message: req.flash('error'),
+    current_user: req.session.passport.user
 
 exports.newUser = (req, res) ->
   res.render './users/new'
     title: 'Chirpie',
     header: 'Welcome to Chirpie',
     user: req.user,
-    message: req.flash('error')
+    message: req.flash('error'),
+    current_user: req.session.passport.user
 
 exports.usersIndex = (req, res) ->
-  Users.find_all (err, result) ->
+  Users.all (err, result) ->
     if err
       users = []
       res.render './users/index'
@@ -29,7 +32,9 @@ exports.usersIndex = (req, res) ->
         header: 'header....',
         user: req.user,
         users: users,
-        message: req.flash('error')
+        message: req.flash('error'),
+        current_user: req.session.passport.user
+
     else
       users = result.rows
       res.render './users/index'
@@ -37,52 +42,31 @@ exports.usersIndex = (req, res) ->
         header: 'header....',
         user: req.user,
         users: users,
-        message: req.flash('error')
+        message: req.flash('error'),
+        current_user: req.session.passport.user
+
 
 exports.showUser = (req, res, next) ->
-  unless req.params.id
-    res.render "404.jade",
-      title: "404 - Page Not Found",
-      showFullNav: false,
-      status: 404,
-      url: req.url
-  Users.find_by_id req.params.id, (err, result) ->
-    if err
-      res.render "404.jade",
-        title: "404 - Page Not Found",
-        showFullNav: false,
-        status: 404,
-        url: req.url
-    
-    user = result.rows[0]
+  user = req.loaded_user
+  user.tweets = user.followers = user.following = []
 
-    if ! (user and user.id and user.id isnt undefined)
-      res.render "404.jade",
-        title: "404 - Page Not Found",
-        showFullNav: false,
-        status: 404,
-        url: req.url
-    
-    user.tweets = user.followers = user.following = []
-    Users.tweets_for user.id, (err, result) ->
-      if err then user.tweets = []
-      user.tweets = result.rows
-      console.log '...\nwith tweets...\nuser =>\n',user
+  Users.tweets_for user.id, (err, result) ->
+    if(err) then user.tweets = []
+    user.tweets = result.rows
 
-    Users.followers user.id, (err, result) ->
-      if err then user.followers = []
-      user.followers = result.rows
-      console.log '...\nwith followers...\nuser =>\n',user
+  Users.followers user.id, (err, result) ->
+    if(err) then user.followers = []
+    user.followers = result.rows
 
-    Users.following user.id, (err, result) ->
-      if err then user.following = []
-      user.following = result.rows
-      console.log '...\nwith following...\nuser =>\n',user
+  Users.following user.id, (err, result) ->
+    if(err) then user.following = []
+    user.following = result.rows
 
-      res.render './users/show'
-        title: 'Show user page',
-        header: 'show user header',
-        user: user
+    res.render './users/show'
+      title: 'Show user page',
+      header: 'show user header',
+      user: user,
+      current_user: req.session.passport.user
 
 
 exports.createUser = (req, res, next) ->
@@ -102,40 +86,41 @@ exports.createUser = (req, res, next) ->
       else
         res.send({status:"OK", message: "User received"})
 
-exports.index = (req, res) ->
-  Tweets.find_all (err, result) ->
+exports.home = (req, res) ->
+  Tweets.all (err, result) ->
     if err
       console.log 'An error occurred: ' + err
     else
-      res.render 'index'
+      res.render 'home'
         title: 'Chirpie',
         header: 'Welcome to Chirpie',
         user: req.user,
-        tweets: result.rows
-        message: req.flash('success')
+        tweets: result.rows,
+        message: req.flash('success'),
+        current_user: req.session.passport.user
 
 exports.newTweet = (req, res, next) ->
-  if req.body and req.body.tweet
+  if(req.body and req.body.tweet)
     Users.find_by_username req.body.tweet.username, (err, result) ->
-      if err
-        console.log('ERROR...could not find user...\n', err)
+      if err then console.log('ERROR...could not find user...\n', err)
+      
       else
-        user_id = result.rows[0].id
-      if user_id
-        Tweets.save user_id, req.body.tweet.content, (err, tweet) ->
-          if err
-            switch err.reason
-              when 'content_length_is_zero' then message = 'Tweets must have content!'
-              when 'length_over_140' then message = "Tweets must be 140 characters of less"
-              when 'no_user_id_provided' then message = "Unknown user..."
-              else message = "something went wrong..."
-            req.flash('success', message)
+        user = result.rows[0]
+        Tweets.save user.id, req.body.tweet.content, (err, tweet) ->
+        if err
+          switch err.reason
+            when 'content_length_is_zero' then message = 'Tweets must have content!'
+            when 'length_over_140' then message = "Tweets must be 140 characters of less"
+            when 'no_user_id_provided' then message = "Unknown user..."
+            else message = "something went wrong..."
+          req.flash('success', message)
+          res.redirect('/')
+        
+        else if accepts_html(req.headers['accept'])
+            req.flash('success', "Saved")
             res.redirect('/')
-          else if accepts_html(req.headers['accept'])
-              req.flash('success', "Saved")
-              res.redirect('/')
-          else
-            res.send({status:"OK", message: "Tweet received"})
+        else
+          res.send({status:"OK", message: "Tweet received"})
 
 exports.logout = (req, res) ->
   req.logout()
@@ -145,7 +130,8 @@ exports.about = (req, res) ->
   res.render "about"
     title: 'About Chirpie',
     header: 'About Us',
-    user: req.user
+    user: req.user,
+    current_user: req.session.passport.user
 
 accepts_html = (header) ->
   attrs = header.split(",")

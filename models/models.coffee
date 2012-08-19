@@ -5,7 +5,7 @@ validEmail = (email) ->
   re.test(email)
 
 class Tweet
-  find_all: (callback) ->
+  all: (callback) ->
     q='SELECT * FROM users INNER JOIN tweets ON tweets.user_id = users.id LIMIT 10;'
     db_client.query q, callback
   
@@ -55,7 +55,7 @@ class Tweet
 exports.TweetSchema = Tweet
 
 class User
-  find_all: (callback) ->
+  all: (callback) ->
     q='SELECT * FROM users;'
     db_client.query q, callback
 
@@ -90,7 +90,7 @@ class User
     db_client.query q, callback
 
   is_following: (user_id, callback) ->
-    return
+    return true
 
   followers: (user_id, callback) ->
     q = "SELECT followers.* FROM users u INNER JOIN relationships r ON r.followed_id = u.id INNER JOIN users followers ON r.follower_id = followers.id WHERE u.id = '"+user_id+"';"
