@@ -63,7 +63,7 @@ class User
     q = "SELECT * FROM users WHERE username = '"+username+"';"
     db_client.query q, callback
 
-  find_by_id: (id, callback) ->
+  find: (id, callback) ->
     q = "SELECT * FROM users WHERE id = '"+id+"';"
     db_client.query q, callback
 
@@ -84,6 +84,9 @@ class User
           else
             user = result.rows[0]
             callback(null, user)
+  feed: (user_id, callback) ->
+    q = "SELECT following.username, t.* FROM users u INNER JOIN relationships r ON r.follower_id = u.id  INNER JOIN users following ON r.followed_id = following.id INNER JOIN tweets t ON t.user_id = following.id WHERE u.id = '"+user_id+"';"
+    db_client.query q, callback
 
   tweets_for: (user_id, callback) ->
     q = "SELECT t.* FROM tweets t INNER JOIN users u ON u.id = t.user_id WHERE t.user_id = '"+user_id+"';"

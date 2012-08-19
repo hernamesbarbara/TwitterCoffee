@@ -47,26 +47,12 @@ exports.usersIndex = (req, res) ->
 
 
 exports.showUser = (req, res, next) ->
-  user = req.loaded_user
-  user.tweets = user.followers = user.following = []
-
-  Users.tweets_for user.id, (err, result) ->
-    if(err) then user.tweets = []
-    user.tweets = result.rows
-
-  Users.followers user.id, (err, result) ->
-    if(err) then user.followers = []
-    user.followers = result.rows
-
-  Users.following user.id, (err, result) ->
-    if(err) then user.following = []
-    user.following = result.rows
-
-    res.render './users/show'
-      title: 'Show user page',
-      header: 'show user header',
-      user: user,
-      current_user: req.session.passport.user
+  console.log 'req.loaded_user inside showUser\n',req.loaded_user
+  res.render './users/show'
+    title: 'Show user page',
+    header: 'show user header',
+    user: req.loaded_user,
+    current_user: req.session.passport.user
 
 
 exports.createUser = (req, res, next) ->
@@ -87,22 +73,19 @@ exports.createUser = (req, res, next) ->
         res.send({status:"OK", message: "User received"})
 
 exports.home = (req, res) ->
-  Tweets.all (err, result) ->
-    if err
-      console.log 'An error occurred: ' + err
-    else
-      res.render 'home'
-        title: 'Chirpie',
-        header: 'Welcome to Chirpie',
-        user: req.user,
-        tweets: result.rows,
-        message: req.flash('success'),
-        current_user: req.session.passport.user
+  res.render 'home'
+    title: 'Chirpie',
+    header: 'Welcome to Chirpie',
+    user: req.user,
+    tweets: req.user.feed,
+    message: req.flash('success'),
+    current_user: req.session.passport.user
 
 exports.newTweet = (req, res, next) ->
   if(req.body and req.body.tweet)
     Users.find_by_username req.body.tweet.username, (err, result) ->
-      if err then console.log('ERROR...could not find user...\n', err)
+      if(err)
+        console.log('ERROR...could not find user...\n', err)
       
       else
         user = result.rows[0]

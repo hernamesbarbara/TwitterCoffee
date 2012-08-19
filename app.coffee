@@ -51,7 +51,7 @@ UserSchema = require('./models/models').UserSchema
 Users = new UserSchema
 
 findById = (id, fn) ->
-  Users.find_by_id id, (err, result) ->
+  Users.find id, (err, result) ->
     if err
       fn(new Error("User " + id + " does not exist"))
     else
@@ -77,8 +77,7 @@ ignoreIfAuthenticated = (req, res, next) ->
 loadUser = (req, res, next) ->
   id = req.params.id
   
-  Users.find_by_id id, (err, result) ->
-    
+  Users.find id, (err, result) ->
     if(err)
       res.render "404.jade",
         title: "404 - Page Not Found",
@@ -87,9 +86,72 @@ loadUser = (req, res, next) ->
         url: req.url
 
     else if result and result.rows and result.rows.length == 1
-      req.loaded_user = result.rows[0]
+      user = result.rows[0]
+      user.tweets = user.followers = user.following = []
+      
+      Users.tweets_for user.id, (err, result) ->
+        if(err)
+          user.tweets = []
+        else
+          user.tweets = result.rows
+
+      Users.followers user.id, (err, result) ->
+        if(err)
+          user.followers = []
+        else
+          user.followers = result.rows
+
+      Users.following user.id, (err, result) ->
+        if(err)
+          user.following = []
+        else
+          user.following = result.rows
+
+      req.loaded_user = user
       next()
     
+    else
+      res.render "404.jade",
+        title: "404 - Page Not Found",
+        showFullNav: false,
+        status: 404,
+        url: req.url
+
+loadCurrentUser = (req, res, next) ->
+  id = req.session.passport.user
+
+  Users.find id, (err, result) ->
+    if result and result.rows and result.rows.length == 1
+      
+      user = result.rows[0]
+      req.user.tweets = req.user.followers = req.user.following = req.user.feed = []
+      
+      Users.tweets_for user.id, (err, result) ->
+        if(err)
+          req.user.tweets = []
+        else
+          req.user.tweets = result.rows
+
+      Users.followers user.id, (err, result) ->
+        if(err)
+          req.user.followers = []
+        else
+          req.user.followers = result.rows
+
+      Users.following user.id, (err, result) ->
+        if(err)
+          req.user.following = []
+        else
+          req.user.following = result.rows
+
+      Users.feed user.id, (err, result) ->
+        if(err)
+          req.user.feed = []
+        else
+          req.user.feed = result.rows
+
+        next()
+
     else
       res.render "404.jade",
         title: "404 - Page Not Found",
@@ -120,7 +182,7 @@ app.configure ->
 
 app.get('/about', routes.about)
 
-app.get('/', ensureAuthenticated, routes.home)
+app.get('/', ensureAuthenticated, loadCurrentUser, routes.home)
 app.get('/home', ensureAuthenticated, routes.home)
 app.post('/send', ensureAuthenticated, routes.newTweet)
 app.get('/signup', ignoreIfAuthenticated, routes.newUser)
