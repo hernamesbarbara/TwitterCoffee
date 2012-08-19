@@ -9,12 +9,12 @@ Tweets = new TweetSchema
   USERS
 ###
 exports.login = (req, res) ->
-  res.render "login"
+  res.render "./sessions/login"
     user: req.user
     message: req.flash('error')
 
-exports.signup = (req, res) ->
-  res.render 'signup'
+exports.newUser = (req, res) ->
+  res.render './users/new'
     title: 'Chirpie',
     header: 'Welcome to Chirpie',
     user: req.user,
@@ -24,7 +24,7 @@ exports.usersIndex = (req, res) ->
   Users.find_all (err, result) ->
     if err
       users = []
-      res.render 'users_index'
+      res.render './users/index'
         title: 'Chirpie Users',
         header: 'header....',
         user: req.user,
@@ -32,14 +32,14 @@ exports.usersIndex = (req, res) ->
         message: req.flash('error')
     else
       users = result.rows
-      res.render 'users_index'
+      res.render './users/index'
         title: 'Chirpie Users',
         header: 'header....',
         user: req.user,
         users: users,
         message: req.flash('error')
 
-exports.userShow = (req, res, next) ->
+exports.showUser = (req, res, next) ->
   unless req.params.id
     res.render "404.jade",
       title: "404 - Page Not Found",
@@ -56,30 +56,36 @@ exports.userShow = (req, res, next) ->
     
     user = result.rows[0]
 
-    if(user and user.id and user.id isnt undefined)
-
-      Users.tweets_for user.id, (err, result) ->
-        if err then user.tweets = []
-        user.tweets = result.rows
-        console.log '...\nwith tweets...\nuser =>\n',user
-
-      Users.followers user.id, (err, result) ->
-        if err then user.followers = []
-        user.followers = result.rows
-        console.log '...\nwith followers...\nuser =>\n',user
-
-        res.render 'user_show'
-          title: 'Show user page',
-          header: 'show user header',
-          user: user
-    else
+    if ! (user and user.id and user.id isnt undefined)
       res.render "404.jade",
         title: "404 - Page Not Found",
         showFullNav: false,
         status: 404,
         url: req.url
+    
+    user.tweets = user.followers = user.following = []
+    Users.tweets_for user.id, (err, result) ->
+      if err then user.tweets = []
+      user.tweets = result.rows
+      console.log '...\nwith tweets...\nuser =>\n',user
 
-exports.newUser = (req, res, next) ->
+    Users.followers user.id, (err, result) ->
+      if err then user.followers = []
+      user.followers = result.rows
+      console.log '...\nwith followers...\nuser =>\n',user
+
+    Users.following user.id, (err, result) ->
+      if err then user.following = []
+      user.following = result.rows
+      console.log '...\nwith following...\nuser =>\n',user
+
+      res.render './users/show'
+        title: 'Show user page',
+        header: 'show user header',
+        user: user
+
+
+exports.createUser = (req, res, next) ->
   if req.body and req.body.user
     Users.save req.body.user.username, req.body.user.password, (err, user) ->
       if err
@@ -134,6 +140,12 @@ exports.newTweet = (req, res, next) ->
 exports.logout = (req, res) ->
   req.logout()
   res.redirect "/"
+
+exports.about = (req, res) ->
+  res.render "about"
+    title: 'About Chirpie',
+    header: 'About Us',
+    user: req.user
 
 accepts_html = (header) ->
   attrs = header.split(",")

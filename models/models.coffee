@@ -17,7 +17,6 @@ class Tweet
         callback(validation, null)
       else
         #SAVE THE TWEET
-        console.log '\n'+'**NEW TWEET**\nUSER ID: '+user_id+'\nCONTENT '+content+'\n'
         db_client.query 'INSERT INTO tweets(user_id, content) VALUES($1, $2)', [user_id,content]
         
         #RETURN THE NEW TWEET IF SAVED SUCCESSFULLY
@@ -26,7 +25,6 @@ class Tweet
           if err
             callback(err, null)
           else
-            console.log '\n'+'**This should be the same as the new tweet**\n',result.rows[0]
             tweet = result.rows[0]
             callback(null, tweet)
 
@@ -91,12 +89,17 @@ class User
     q = "SELECT t.* FROM tweets t INNER JOIN users u ON u.id = t.user_id WHERE t.user_id = '"+user_id+"';"
     db_client.query q, callback
 
+  is_following: (user_id, callback) ->
+    return
+
   followers: (user_id, callback) ->
     q = "SELECT followers.* FROM users u INNER JOIN relationships r ON r.followed_id = u.id INNER JOIN users followers ON r.follower_id = followers.id WHERE u.id = '"+user_id+"';"
     db_client.query q, callback
 
   following: (user_id, callback) ->
-    return
+    q = "SELECT following.* FROM users u INNER JOIN relationships r ON r.follower_id = u.id INNER JOIN users following ON r.followed_id = following.id WHERE u.id = '"+user_id+"';"
+    console.log 'about to call Users.following() with query:\n',q
+    db_client.query q, callback
 
   beforeSave:(username, password, fn) ->
     #USERNAME MUST BE IN FORMAT <FOO@BAR.COM>

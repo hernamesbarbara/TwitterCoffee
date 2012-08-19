@@ -36,16 +36,16 @@ passport.deserializeUser (id, done) ->
 passport.use new LocalStrategy (username, password, done) ->
   process.nextTick ->
     findByUsername username, (err, user) ->
-      return done(err) if err
-      unless user
-        return done(null, false,
-          message: "Unkown user " + username
-        )
-      unless user.password is password
-        return done(null, false,
-          message: "Invalid password"
-        )
-      done null, user
+      if err
+        return done(err, false)
+      
+      if not user
+        return done(null, false, {message: "Unkown user " + username})
+      
+      if user.password != password
+        return done(null, false, {message: "Invalid password"})
+      
+      done(null, user)
 
 UserSchema = require('./models/models').UserSchema
 Users = new UserSchema
@@ -95,11 +95,13 @@ app.configure ->
       status: 404
       url: req.url
 
+app.get('/about', routes.about)
+
 app.get('/', ensureAuthenticated, routes.index)
 app.get('/home', ensureAuthenticated, routes.index)
 app.post('/send', ensureAuthenticated, routes.newTweet)
-app.get('/signup', ignoreIfAuthenticated, routes.signup)
-app.post('/signup', ignoreIfAuthenticated, routes.newUser)
+app.get('/signup', ignoreIfAuthenticated, routes.newUser)
+app.post('/signup', ignoreIfAuthenticated, routes.createUser)
 app.get('/login', ignoreIfAuthenticated, routes.login)
 
 app.post "/login", passport.authenticate("local",
@@ -111,4 +113,4 @@ app.post "/login", passport.authenticate("local",
 app.get("/logout", routes.logout)
 
 app.get('/users', ensureAuthenticated, routes.usersIndex)
-app.get('/users/:id', ensureAuthenticated, routes.userShow);
+app.get('/users/:id', ensureAuthenticated, routes.showUser);

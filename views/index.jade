@@ -1,7 +1,10 @@
 extends layout
 
 block content
-  include shared/_flash_success
   h1=header
-  include partials/_newTweet
-  include partials/_tweets
+  include shared/_flash_success
+  img(id='user_'+user.id, src='./../images/tim.png', style='float:left;width:130px;height:130px;')
+  include ./tweets/new
+  
+  div#box(style='float:none;padding-top:25px;')
+    include ./tweets/index

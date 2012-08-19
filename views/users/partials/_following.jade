@@ -1,0 +1,4 @@
+p User is following #{user.following.length} users
+ul
+  - for followed in user.following
+    li= followed.username

@@ -1,0 +1,4 @@
+p User has #{user.followers.length} followers
+ul
+  - for follower in user.followers
+    li= follower.username
