@@ -7,6 +7,7 @@ jade           = require('jade')
 less           = require('less')
 lessMiddleware = require('less-middleware')
 util           = require("util")
+_              = require 'underscore'
 LocalStrategy  = require("passport-local").Strategy
 routes         = require('./routes/routes')
 app            = express()
@@ -37,9 +38,9 @@ passport.use new LocalStrategy (username, password, done) ->
   process.nextTick ->
     findByUsername username, (err, user) ->
       if err
-        return done(err, false)
+        return done(err)
       
-      if not user
+      if ! user
         return done(null, false, {message: "Unkown user " + username})
       
       if user.password != password
@@ -71,44 +72,37 @@ ensureAuthenticated = (req, res, next) ->
   res.redirect("/login")
 
 ignoreIfAuthenticated = (req, res, next) ->
-  return next() if not req.isAuthenticated()
+  return next() if ! req.isAuthenticated()
   res.redirect("/")
 
 loadUser = (req, res, next) ->
   id = req.params.id
+  console.log parseInt(req.params.id) == parseInt(req.current_user.id)
   
   Users.find id, (err, result) ->
-    if(err)
-      res.render "404.jade",
-        title: "404 - Page Not Found",
-        showFullNav: false,
-        status: 404,
-        url: req.url
-
-    else if result and result.rows and result.rows.length == 1
-      user = result.rows[0]
-      user.tweets = user.followers = user.following = []
+    if result and result.rows and result.rows.length == 1
+      loaded_user = req.loaded_user = result.rows[0]
+      req.loaded_user.tweets = req.loaded_user.followers = req.loaded_user.following = []
       
-      Users.tweets_for user.id, (err, result) ->
-        if(err)
-          user.tweets = []
+      Users.tweets_for loaded_user.id, (err, result) ->
+        if err
+          req.loaded_user.tweets = []
         else
-          user.tweets = result.rows
+          req.loaded_user.tweets = result.rows
 
-      Users.followers user.id, (err, result) ->
-        if(err)
-          user.followers = []
+      Users.followers loaded_user.id, (err, result) ->
+        if err
+          req.loaded_user.followers = []
         else
-          user.followers = result.rows
+          req.loaded_user.followers = result.rows
 
-      Users.following user.id, (err, result) ->
-        if(err)
-          user.following = []
+      Users.following loaded_user.id, (err, result) ->
+        if err
+          req.loaded_user.following = []
         else
-          user.following = result.rows
+          req.loaded_user.following = result.rows
 
-      req.loaded_user = user
-      next()
+        next()
     
     else
       res.render "404.jade",
@@ -123,32 +117,32 @@ loadCurrentUser = (req, res, next) ->
   Users.find id, (err, result) ->
     if result and result.rows and result.rows.length == 1
       
-      user = result.rows[0]
-      req.user.tweets = req.user.followers = req.user.following = req.user.feed = []
+      current_user = result.rows[0]
+      req.current_user.tweets = req.current_user.followers = req.current_user.following = req.current_user.feed = []
       
-      Users.tweets_for user.id, (err, result) ->
-        if(err)
-          req.user.tweets = []
+      Users.tweets_for current_user.id, (err, result) ->
+        if err
+          req.current_user.tweets = []
         else
-          req.user.tweets = result.rows
+          req.current_user.tweets = result.rows
 
-      Users.followers user.id, (err, result) ->
-        if(err)
-          req.user.followers = []
+      Users.followers current_user.id, (err, result) ->
+        if err
+          req.current_user.followers = []
         else
-          req.user.followers = result.rows
+          req.current_user.followers = result.rows
 
-      Users.following user.id, (err, result) ->
-        if(err)
-          req.user.following = []
+      Users.following current_user.id, (err, result) ->
+        if err
+          req.current_user.following = []
         else
-          req.user.following = result.rows
+          req.current_user.following = result.rows
 
-      Users.feed user.id, (err, result) ->
-        if(err)
-          req.user.feed = []
+      Users.feed current_user.id, (err, result) ->
+        if err
+          req.current_user.feed = []
         else
-          req.user.feed = result.rows
+          req.current_user.feed = result.rows
 
         next()
 
@@ -168,6 +162,9 @@ app.configure ->
   app.use express.methodOverride()
   app.use express.session(secret: "keyboard cat")
   app.use passport.initialize()
+  app.configure ->
+    app.use passport.initialize(userProperty: "current_user")
+
   app.use passport.session()
   app.use(connect.static(__dirname + '/public'))
   app.use(lessMiddleware({src: __dirname + "/public", compress: true}))

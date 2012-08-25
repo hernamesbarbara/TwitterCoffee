@@ -4,10 +4,6 @@ passport    = require('passport')
 Users       = new UserSchema
 Tweets      = new TweetSchema
 
-###
-  USERS
-###
-
 
 exports.login = (req, res) ->
   res.render "./sessions/login"
@@ -76,13 +72,15 @@ exports.home = (req, res) ->
   res.render 'home'
     title: 'Chirpie',
     header: 'Welcome to Chirpie',
-    user: req.user,
-    tweets: req.user.feed,
+    user: req.current_user,
+    following: req.current_user.following,
+    tweets: req.current_user.feed,
     message: req.flash('success'),
     current_user: req.session.passport.user
 
 exports.newTweet = (req, res, next) ->
   if(req.body and req.body.tweet)
+    console.log 'about to find by username\n',req.body.tweet
     Users.find_by_username req.body.tweet.username, (err, result) ->
       if(err)
         console.log('ERROR...could not find user...\n', err)

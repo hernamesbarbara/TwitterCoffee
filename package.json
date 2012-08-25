@@ -17,6 +17,7 @@
     , "coffee-script": "*"
     , "pg": "*"
     , "socket.io": "*"
+    , "underscore": "*"
   }
   , "devDependencies": {
     "mocha": "*"
