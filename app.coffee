@@ -77,7 +77,7 @@ ignoreIfAuthenticated = (req, res, next) ->
 
 loadUser = (req, res, next) ->
   id = req.params.id
-  console.log parseInt(req.params.id) == parseInt(req.current_user.id)
+  #console.log parseInt(req.params.id) == parseInt(req.current_user.id)
   
   Users.find id, (err, result) ->
     if result and result.rows and result.rows.length == 1

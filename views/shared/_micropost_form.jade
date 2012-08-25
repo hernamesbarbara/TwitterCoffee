@@ -1,0 +1,7 @@
+form.form-horizontal.controls(method='post', action='/send')
+  include ./_formErrors
+  div.field
+    input(type="hidden", name='tweet[username]', value='#{user.username}')
+    textarea.input-xlarge(name='tweet[content]', placeholder="What's happening?")
+  br
+  input.btn.btn-large.btn-primary(value='Tweet', type='submit')

@@ -7,17 +7,17 @@ Tweets      = new TweetSchema
 
 exports.login = (req, res) ->
   res.render "./sessions/login"
-    user: req.user,
+    user: req.current_user,
     message: req.flash('error'),
-    current_user: req.session.passport.user
+    loggedIn: if req.isAuthenticated() then true else false
 
 exports.newUser = (req, res) ->
   res.render './users/new'
     title: 'Chirpie',
     header: 'Welcome to Chirpie',
-    user: req.user,
+    user: req.current_user,
     message: req.flash('error'),
-    current_user: req.session.passport.user
+    loggedIn: if req.isAuthenticated() then true else false
 
 exports.usersIndex = (req, res) ->
   Users.all (err, result) ->
@@ -26,29 +26,26 @@ exports.usersIndex = (req, res) ->
       res.render './users/index'
         title: 'Chirpie Users',
         header: 'header....',
-        user: req.user,
+        user: req.current_user,
         users: users,
         message: req.flash('error'),
-        current_user: req.session.passport.user
-
+        loggedIn: if req.isAuthenticated() then true else false
     else
       users = result.rows
       res.render './users/index'
         title: 'Chirpie Users',
         header: 'header....',
-        user: req.user,
+        user: req.current_user,
         users: users,
         message: req.flash('error'),
-        current_user: req.session.passport.user
-
+        loggedIn: if req.isAuthenticated() then true else false
 
 exports.showUser = (req, res, next) ->
-  console.log 'req.loaded_user inside showUser\n',req.loaded_user
   res.render './users/show'
     title: 'Show user page',
     header: 'show user header',
     user: req.loaded_user,
-    current_user: req.session.passport.user
+    loggedIn: if req.isAuthenticated() then true else false
 
 
 exports.createUser = (req, res, next) ->
@@ -73,35 +70,24 @@ exports.home = (req, res) ->
     title: 'Chirpie',
     header: 'Welcome to Chirpie',
     user: req.current_user,
-    following: req.current_user.following,
-    tweets: req.current_user.feed,
-    message: req.flash('success'),
-    current_user: req.session.passport.user
+    loggedIn: if req.isAuthenticated() then true else false
 
 exports.newTweet = (req, res, next) ->
-  if(req.body and req.body.tweet)
-    console.log 'about to find by username\n',req.body.tweet
-    Users.find_by_username req.body.tweet.username, (err, result) ->
-      if(err)
-        console.log('ERROR...could not find user...\n', err)
-      
-      else
-        user = result.rows[0]
-        Tweets.save user.id, req.body.tweet.content, (err, tweet) ->
-        if err
-          switch err.reason
-            when 'content_length_is_zero' then message = 'Tweets must have content!'
-            when 'length_over_140' then message = "Tweets must be 140 characters of less"
-            when 'no_user_id_provided' then message = "Unknown user..."
-            else message = "something went wrong..."
-          req.flash('success', message)
-          res.redirect('/')
-        
-        else if accepts_html(req.headers['accept'])
-            req.flash('success', "Saved")
-            res.redirect('/')
-        else
-          res.send({status:"OK", message: "Tweet received"})
+  Tweets.save req.current_user.id, req.body.tweet.content, (err, tweet) ->
+    if err
+      switch err.reason
+        when 'content_length_is_zero' then message = 'Tweets must have content!'
+        when 'length_over_140' then message = "Tweets must be 140 characters of less"
+        when 'no_user_id_provided' then message = "Unknown user..."
+        else message = "something went wrong..."
+      req.flash('success', message)
+      res.redirect('/')
+    
+    else if accepts_html(req.headers['accept'])
+        req.flash('success', "Saved")
+        res.redirect('/')
+    else
+      res.send({status:"OK", message: "Tweet received"})
 
 exports.logout = (req, res) ->
   req.logout()
@@ -111,8 +97,8 @@ exports.about = (req, res) ->
   res.render "about"
     title: 'About Chirpie',
     header: 'About Us',
-    user: req.user,
-    current_user: req.session.passport.user
+    user: req.current_user,
+    loggedIn: if req.isAuthenticated() then true else false
 
 accepts_html = (header) ->
   attrs = header.split(",")

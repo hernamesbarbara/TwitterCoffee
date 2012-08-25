@@ -1,0 +1,14 @@
+a(href='users/#user.id')
+  img(id='user_'+user.id, src='./../../../images/tim.png', style='float:left;width:52px;height:52px;')
+h1= user.username
+
+span(style="padding-top:5px;")
+  a(href='users/#{user.id}') View Profile
+
+ul.user_info
+  li 
+    a(href='users/#{user.id}') #{user.tweets.length} tweets
+  li
+    a(href='users/#{user.id}') #{user.following.length} following
+  li
+    a(href='users/#{user.id}') #{user.followers.length} followers

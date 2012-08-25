@@ -1,7 +1,0 @@
-p This user has #{user.tweets.length} tweets
-
-ol.microposts
-  -for tweet in user.tweets
-    li(id=tweet.id)
-      span.content #{tweet.content}
-      span.timestamp #{tweet.created_at}

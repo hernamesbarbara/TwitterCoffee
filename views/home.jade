@@ -1,10 +1,13 @@
 extends layout
 
 block content
-  h1=header
   include shared/_flash_success
-  img(id='user_'+user.id, src='./../images/tim.png', style='float:left;width:130px;height:130px;')
-  include ./tweets/new
-  
-  div#box(style='float:none;padding-top:25px;')
-    include ./tweets/index
+  .row
+    aside.span4
+      section
+        include shared/_user_info
+      section
+        include shared/_micropost_form
+    div.span8
+      h3 Micropost Feed
+      include shared/_feed

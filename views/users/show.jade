@@ -1,22 +1,15 @@
 extends ./../layout
 
 block content
-	-if(user)
-		img(id='user_'+user.id, src='./../images/tim.png', style='width:150px;height:150px;')
-		p Show user page for: #{user.username}
-	
-	div.span8
-		- if(user && user.followers && user.followers.length > 0)
-			include ./partials/_followers
-		- else
-			p User has 0 followers
-		
-		- if(user && user.following && user.following.length > 0)
-			include ./partials/_following
-		- else
-			p User isn't following anyone yet
-		
-		- if(user && user.tweets && user.tweets.length > 0)
-			include ./partials/_feed
-		- else
-			p User hasn't sent any tweets yet
+  .row
+    aside.span4
+      section
+        include ./../shared/_user_info
+    div.span8
+      h3 Micropost Feed
+      - if(typeof(user.tweets) !== 'undefined' && user.tweets.length > 0)
+        ol.microposts
+          -for tweet in user.tweets
+            li(id=tweet.id)
+              span.content #{tweet.username} said: #{tweet.content}
+              span.timestamp #{tweet.created_at}

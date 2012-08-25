@@ -198,6 +198,9 @@ aside section h1 {
   border-bottom: 1px solid #ddd; 
 }
 
+ul.user_info {margin:0px;padding:0px;}
+ul.user_info li {display:inline; padding:3px;}
+
 .microposts {
   list-style: none;
   margin: 10px 0 0 0; 

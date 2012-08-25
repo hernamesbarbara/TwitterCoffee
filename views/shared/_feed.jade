@@ -1,0 +1,6 @@
+- if(typeof(user.feed) !== 'undefined' && user.feed.length > 0)
+  ol.microposts
+    -for tweet in user.feed
+      li(id=tweet.id)
+        span.content #{tweet.username} said: #{tweet.content}
+        span.timestamp #{tweet.created_at}
