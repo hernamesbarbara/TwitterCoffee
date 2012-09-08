@@ -6,10 +6,12 @@ Tweets      = new TweetSchema
 
 
 exports.login = (req, res) ->
+  console.log 'req.isAuthenticated()\n'
+  console.log req.isAuthenticated()
   res.render "./sessions/login"
     user: req.current_user,
     message: req.flash('error'),
-    loggedIn: if req.isAuthenticated() then true else false
+    loggedIn: req.isAuthenticated()
 
 exports.newUser = (req, res) ->
   res.render './users/new'
@@ -17,7 +19,7 @@ exports.newUser = (req, res) ->
     header: 'Welcome to Chirpie',
     user: req.current_user,
     message: req.flash('error'),
-    loggedIn: if req.isAuthenticated() then true else false
+    loggedIn: req.isAuthenticated()
 
 exports.usersIndex = (req, res) ->
   Users.all (err, result) ->
@@ -29,7 +31,7 @@ exports.usersIndex = (req, res) ->
         user: req.current_user,
         users: users,
         message: req.flash('error'),
-        loggedIn: if req.isAuthenticated() then true else false
+        loggedIn: req.isAuthenticated()
     else
       users = result.rows
       res.render './users/index'
@@ -38,14 +40,14 @@ exports.usersIndex = (req, res) ->
         user: req.current_user,
         users: users,
         message: req.flash('error'),
-        loggedIn: if req.isAuthenticated() then true else false
+        loggedIn: req.isAuthenticated()
 
 exports.showUser = (req, res, next) ->
   res.render './users/show'
     title: 'Show user page',
     header: 'show user header',
     user: req.loaded_user,
-    loggedIn: if req.isAuthenticated() then true else false
+    loggedIn: req.isAuthenticated()
 
 
 exports.createUser = (req, res, next) ->
@@ -98,7 +100,7 @@ exports.about = (req, res) ->
     title: 'About Chirpie',
     header: 'About Us',
     user: req.current_user,
-    loggedIn: if req.isAuthenticated() then true else false
+    loggedIn: req.isAuthenticated()
 
 accepts_html = (header) ->
   attrs = header.split(",")
