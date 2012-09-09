@@ -13,45 +13,45 @@ class Tweet
     db_client.query q, callback
   
   save: (user_id, content, callback) ->
-    this.beforeSave user_id, content, (err, validation) ->
-      if err 
-        callback(err, null)
-      else if validation 
-        callback(validation, null)
-      else
-        #SAVE THE TWEET
-        db_client.query 'INSERT INTO tweets(user_id, content) VALUES($1, $2)', [user_id,content]
-        
-        #RETURN THE NEW TWEET IF SAVED SUCCESSFULLY
-        q="SELECT t.* FROM tweets t INNER JOIN users u ON t.user_id = u.id WHERE t.user_id = '"+user_id+"' ORDER BY t.created_at DESC LIMIT 1;"
-        db_client.query q, (err, result) ->
-          if err
-            callback(err, null)
-          else
-            tweet = result.rows[0]
-            callback(null, tweet)
+    this.beforeSave user_id, content, (err) ->
+      return callback(err, null) if err
+      
+      #SAVE THE TWEET
+      db_client.query 'INSERT INTO tweets(user_id, content) VALUES($1, $2)', [user_id,content]
+      
+      #RETURN THE NEW TWEET IF SAVED SUCCESSFULLY
+      q="SELECT t.* FROM tweets t INNER JOIN users u ON t.user_id = u.id WHERE t.user_id = '"+user_id+"' ORDER BY t.created_at DESC LIMIT 1;"
+      db_client.query q, (err, result) ->
+        return callback(err, null) if err
+
+        tweet = result.rows[0]
+        return callback(null, tweet)
+
 
   beforeSave:(user_id, content, fn) ->
     if content.length < 1
-      fn(new ValidationError('Tweet must have some content!'))
+      return fn(new ValidationError('Tweet must have some content!'))
+    
     else if content.length > 140
-      fn(new ValidationError('Tweets must be 140 characters of less'))
-    else unless user_id
-      fn(new ApplicationError('No user_id was provided'))
-    else
-      this.ensure_user user_id, (valid) ->
-        if valid
-          fn() 
-        else
-          fn(new ApplicationError('The user_id provided was not found'))
+      return fn(new ValidationError('Tweets must be 140 characters of less'))
+    
+    return fn(new ApplicationError('No user_id provided')) if ! user_id 
+
+    this.ensure_user user_id, (valid) ->
+      if ! valid
+        return fn(new ApplicationError('user_id unknown'))
+      
+      else
+        return fn()
 
   ensure_user: (user_id, callback) ->
     q = "SELECT * FROM users WHERE id = '"+user_id+"';"
     db_client.query q, (err, result) ->
-      if err
+      return callback(false) if err
+      
+      if ! result and result.rows and result.rows.length == 1
         return callback(false)
-      else unless result and result.rows and result.rows.length is 1
-        return callback(false)
+      
       else
         return callback(true)
 
@@ -71,22 +71,18 @@ class User
     db_client.query q, callback
 
   save: (username, password, callback) ->
+    this.beforeSave username, password, (err) -> 
+      return callback(err, null) if err
+      
+      #ELSE SAVE THE USER
+      db_client.query 'INSERT INTO users(username, password) VALUES($1, $2)', [username, password]
+      #RETURN THE USER
+      db_client.query "SELECT * FROM users WHERE username = '"+username+"';", (err, result) ->
+        callback(err, null) if err
 
-    this.beforeSave username, password, (err, validation) -> 
-      if err then callback(err, null)
+        user = result.rows[0]
+        callback(null, user)
 
-      else if validation
-        callback(validation, null)
-      else
-        #SAVE THE USER
-        db_client.query 'INSERT INTO users(username, password) VALUES($1, $2)', [username, password]
-        
-        #RETURN THE USER
-        db_client.query "SELECT * FROM users WHERE username = '"+username+"';", (err, result) ->
-          if err then callback(err, null)
-          else
-            user = result.rows[0]
-            callback(null, user)
   feed: (user_id, callback) ->
     q = "SELECT following.username, t.* FROM users u INNER JOIN relationships r ON r.follower_id = u.id  INNER JOIN users following ON r.followed_id = following.id INNER JOIN tweets t ON t.user_id = following.id WHERE u.id = '"+user_id+"';"
     db_client.query q, callback
@@ -105,25 +101,23 @@ class User
     db_client.query q, callback
 
   beforeSave:(username, password, fn) ->
-    #USERNAME MUST BE IN FORMAT <FOO@BAR.COM>
-    if not validEmail(username) 
-      #fn({reason: "email_format"})
-      fn(new AuthError("Invalid email address"))
+    if ! validEmail(username) #USERNAME MUST BE IN FORMAT <foo@bar.com>
+      return fn(new AuthError("Invalid email address"))
 
     #USERNAMES MUST BE UNIQUE
-    else this.ensure_unique username, (unique) ->
-      if unique
-        fn()
+    this.ensure_unique username, (unique) ->
+      if ! unique
+        return fn(new AuthError("Username must be unique"))
       else
-        fn(new AuthError("Username must be unique"))
-
+        return fn()
 
   ensure_unique: (username, callback) ->
     this.find_by_username username, (err, result) ->
-      if err
+      return callback(false) if err
+      
+      if result and result.rows and result.rows.length > 0
         return callback(false)
-      else if result and result.rows and result.rows.length > 0
-        return callback(false)
+      
       else
         return callback(true)
 

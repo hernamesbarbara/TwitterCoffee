@@ -23,17 +23,16 @@ exports.newUser = (req, res) ->
 exports.usersIndex = (req, res) ->
   Users.all (err, result) ->
     if err
-      users = []
-      res.render './users/index'
+      return res.render './users/index'
         title: 'Chirpie Users',
         header: 'header....',
         user: req.current_user,
-        users: users,
+        users: [],
         message: req.flash('error'),
         loggedIn: req.isAuthenticated()
     else
       users = result.rows
-      res.render './users/index'
+      return res.render './users/index'
         title: 'Chirpie Users',
         header: 'header....',
         user: req.current_user,
@@ -48,13 +47,10 @@ exports.showUser = (req, res, next) ->
     user: req.loaded_user,
     loggedIn: req.isAuthenticated()
 
-
 exports.createUser = (req, res, next) ->
   if req.body and req.body.user
     Users.save req.body.user.username, req.body.user.password, (err, user) ->
       if err
-        console.log err
-        console.log util.inspect(err)
         if err.type == 'AuthenticationError'
           msg = err.message 
         else
@@ -76,25 +72,30 @@ exports.home = (req, res) ->
     title: 'Chirpie',
     header: 'Welcome to Chirpie',
     user: req.current_user,
+    message: req.flash('error'),
+    welcome: req.flash('welcome'),
+    success: req.flash('success'),
     loggedIn: req.isAuthenticated()
 
 exports.newTweet = (req, res, next) ->
   Tweets.save req.current_user.id, req.body.tweet.content, (err, tweet) ->
-    if err
-      if err.type == 'ValidationError'
-        msg = err.message
-      else
-        util.inspect(err, true)
-        msg = 'something went wrong...'
-      
-      req.flash('success', msg)
-      res.redirect('/')
     
-    else if accepts_html(req.headers['accept'])
+    if ! err 
+      if accepts_html(req.headers['accept'])
         req.flash('success', "Saved")
-        res.redirect('/')
+        return res.redirect('/')
+    
+      else
+        return res.send({status:"OK", message: "Tweet received"})
+    
+    if err.type == 'ValidationError' 
+      msg = err.message
     else
-      res.send({status:"OK", message: "Tweet received"})
+      msg = 'Uh oh! Unknown error occured'
+    
+    util.inspect(err, true)
+    req.flash('error', msg)
+    res.redirect('/')
 
 exports.logout = (req, res) ->
   req.logout()
