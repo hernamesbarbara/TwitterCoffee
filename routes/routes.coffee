@@ -50,22 +50,23 @@ exports.showUser = (req, res, next) ->
 exports.createUser = (req, res, next) ->
   if req.body and req.body.user
     Users.save req.body.user.username, req.body.user.password, (err, user) ->
-      if err
-        if err.type == 'AuthenticationError'
-          msg = err.message 
+      if ! err
+        if accepts_html(req.headers['accept'])
+          req.flash('success', "Welcome to Chirpie!")
+          req.login(user, next)
+          return res.redirect('/')
         else
-          util.inspect(err, true)
-          msg = 'Username must be a unique email address'
-        
-        req.flash('error', msg)
-        res.redirect('/signup')
+          return res.send({status:"OK", message: "User received"})
 
-      else if accepts_html(req.headers['accept'])
-        req.flash('success', "Welcome to Chirpie!")
-        req.login(user, next)
-        res.redirect('/')
+      if err.type == 'AuthenticationError'
+        msg = err.message 
+
       else
-        res.send({status:"OK", message: "User received"})
+        msg = 'Username must be a unique email address'
+
+      util.inspect(err, true)
+      req.flash('error', msg)
+      res.redirect('/signup')
 
 exports.home = (req, res) ->
   res.render 'home'
@@ -79,7 +80,6 @@ exports.home = (req, res) ->
 
 exports.newTweet = (req, res, next) ->
   Tweets.save req.current_user.id, req.body.tweet.content, (err, tweet) ->
-    
     if ! err 
       if accepts_html(req.headers['accept'])
         req.flash('success', "Saved")
@@ -88,7 +88,7 @@ exports.newTweet = (req, res, next) ->
       else
         return res.send({status:"OK", message: "Tweet received"})
     
-    if err.type == 'ValidationError' 
+    else if err.type == 'ValidationError' 
       msg = err.message
     else
       msg = 'Uh oh! Unknown error occured'
