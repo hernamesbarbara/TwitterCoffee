@@ -170,22 +170,28 @@ app.configure ->
   app.use(lessMiddleware({src: __dirname + "/public", compress: true}))
   app.use flash()
   app.use app.router
+
+  ###
+    ** Express' app.router ensures that defined routes
+    ** get prioritized above the 404 middleware
+    
+    ** Express will try to match a known route first
+    ** If it can't, then it assumes that the request is a 404
+  ###
   app.use (req, res, next) ->
     res.render "404.jade",
-      title: "404 - Page Not Found"
-      showFullNav: false
-      status: 404
+      title: "404 - Page Not Found",
+      showFullNav: false,
+      status: 404,
       url: req.url
 
 app.get('/about', routes.about)
-
 app.get('/', ensureAuthenticated, loadCurrentUser, routes.home)
 app.get('/home', ensureAuthenticated, routes.home)
 app.post('/send', ensureAuthenticated, routes.newTweet)
 app.get('/signup', ignoreIfAuthenticated, routes.newUser)
 app.post('/signup', ignoreIfAuthenticated, routes.createUser)
 app.get('/login', ignoreIfAuthenticated, routes.login)
-
 app.post "/login", passport.authenticate("local",
   failureRedirect: "/login"
   failureFlash: true
@@ -193,6 +199,5 @@ app.post "/login", passport.authenticate("local",
   res.redirect "/"
 
 app.get("/logout", routes.logout)
-
 app.get('/users', ensureAuthenticated, routes.usersIndex)
 app.get('/users/:id', ensureAuthenticated, loadUser, routes.showUser);

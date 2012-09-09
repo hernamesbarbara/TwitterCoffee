@@ -1,4 +1,7 @@
-db_client = require('../db')
+db_client         = require('../db')
+AuthError         = require('../shared/ApplicationErrors').AuthenticationError
+ValidationError   = require('../shared/ApplicationErrors').ValidationError
+ApplicationError  = require('../shared/ApplicationErrors').ApplicationError
 
 validEmail = (email) ->
   re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
@@ -30,17 +33,17 @@ class Tweet
 
   beforeSave:(user_id, content, fn) ->
     if content.length < 1
-      fn({reason: "content_length_is_zero"})
+      fn(new ValidationError('Tweet must have some content!'))
     else if content.length > 140
-      fn({reason: "length_over_140"})
+      fn(new ValidationError('Tweets must be 140 characters of less'))
     else unless user_id
-      fn({reason: "no_user_id_provided"})
+      fn(new ApplicationError('No user_id was provided'))
     else
       this.ensure_user user_id, (valid) ->
         if valid
           fn() 
         else
-          fn({reason: "invalid_user_id"})
+          fn(new ApplicationError('The user_id provided was not found'))
 
   ensure_user: (user_id, callback) ->
     q = "SELECT * FROM users WHERE id = '"+user_id+"';"
@@ -92,34 +95,31 @@ class User
     q = "SELECT t.* FROM tweets t INNER JOIN users u ON u.id = t.user_id WHERE t.user_id = '"+user_id+"';"
     db_client.query q, callback
 
-  is_following: (user_id, callback) ->
-    return true
-
   followers: (user_id, callback) ->
     q = "SELECT followers.* FROM users u INNER JOIN relationships r ON r.followed_id = u.id INNER JOIN users followers ON r.follower_id = followers.id WHERE u.id = '"+user_id+"';"
     db_client.query q, callback
 
   following: (user_id, callback) ->
     q = "SELECT following.* FROM users u INNER JOIN relationships r ON r.follower_id = u.id INNER JOIN users following ON r.followed_id = following.id WHERE u.id = '"+user_id+"';"
-    console.log 'about to call Users.following() with query:\n',q
+    console.log 'about to call Users.following() with query:\n', q
     db_client.query q, callback
 
   beforeSave:(username, password, fn) ->
     #USERNAME MUST BE IN FORMAT <FOO@BAR.COM>
     if not validEmail(username) 
-      fn({reason: "email_format"})
+      #fn({reason: "email_format"})
+      fn(new AuthError("Invalid email address"))
 
     #USERNAMES MUST BE UNIQUE
     else this.ensure_unique username, (unique) ->
       if unique
         fn()
       else
-        fn({reason: "duplicate_user"})
+        fn(new AuthError("Username must be unique"))
 
 
   ensure_unique: (username, callback) ->
     this.find_by_username username, (err, result) ->
-
       if err
         return callback(false)
       else if result and result.rows and result.rows.length > 0

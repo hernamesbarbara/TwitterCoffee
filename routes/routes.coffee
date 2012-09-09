@@ -1,13 +1,12 @@
 TweetSchema = require('../models/models').TweetSchema
 UserSchema  = require('../models/models').UserSchema
 passport    = require('passport')
+util        = require("util")
 Users       = new UserSchema
 Tweets      = new TweetSchema
 
 
 exports.login = (req, res) ->
-  console.log 'req.isAuthenticated()\n'
-  console.log req.isAuthenticated()
   res.render "./sessions/login"
     user: req.current_user,
     message: req.flash('error'),
@@ -54,12 +53,17 @@ exports.createUser = (req, res, next) ->
   if req.body and req.body.user
     Users.save req.body.user.username, req.body.user.password, (err, user) ->
       if err
-        switch err.reason
-          when "email_format" then message = "Username must be a valid email address."
-          when "duplicate_user" then message = "Username already taken. Try logging in instead."
-          else message = "Please enter a valid username and password"
-        req.flash('error', message)
+        console.log err
+        console.log util.inspect(err)
+        if err.type == 'AuthenticationError'
+          msg = err.message 
+        else
+          util.inspect(err, true)
+          msg = 'Username must be a unique email address'
+        
+        req.flash('error', msg)
         res.redirect('/signup')
+
       else if accepts_html(req.headers['accept'])
         req.flash('success', "Welcome to Chirpie!")
         req.login(user, next)
@@ -72,17 +76,18 @@ exports.home = (req, res) ->
     title: 'Chirpie',
     header: 'Welcome to Chirpie',
     user: req.current_user,
-    loggedIn: if req.isAuthenticated() then true else false
+    loggedIn: req.isAuthenticated()
 
 exports.newTweet = (req, res, next) ->
   Tweets.save req.current_user.id, req.body.tweet.content, (err, tweet) ->
     if err
-      switch err.reason
-        when 'content_length_is_zero' then message = 'Tweets must have content!'
-        when 'length_over_140' then message = "Tweets must be 140 characters of less"
-        when 'no_user_id_provided' then message = "Unknown user..."
-        else message = "something went wrong..."
-      req.flash('success', message)
+      if err.type == 'ValidationError'
+        msg = err.message
+      else
+        util.inspect(err, true)
+        msg = 'something went wrong...'
+      
+      req.flash('success', msg)
       res.redirect('/')
     
     else if accepts_html(req.headers['accept'])
