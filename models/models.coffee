@@ -78,10 +78,10 @@ class User
       db_client.query 'INSERT INTO users(username, password) VALUES($1, $2)', [username, password]
       #RETURN THE USER
       db_client.query "SELECT * FROM users WHERE username = '"+username+"';", (err, result) ->
-        callback(err, null) if err
+        return callback(err, null) if err
 
         user = result.rows[0]
-        callback(null, user)
+        return callback(null, user)
 
   feed: (user_id, callback) ->
     q = "SELECT following.username, t.* FROM users u INNER JOIN relationships r ON r.follower_id = u.id  INNER JOIN users following ON r.followed_id = following.id INNER JOIN tweets t ON t.user_id = following.id WHERE u.id = '"+user_id+"';"
