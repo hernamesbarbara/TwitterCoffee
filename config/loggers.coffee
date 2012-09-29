@@ -33,7 +33,7 @@ server = winstond.nssocket.createServer
   port: 9003
 
 server.add MongoDB,
-  db: "anecdotally"
+  db: "twittercoffee"
   collection: 'logs'
   safe: true
   host: 'localhost'
