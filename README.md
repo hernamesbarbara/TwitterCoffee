@@ -7,7 +7,7 @@
 - authentication: [passport](http://passportjs.org/)
 - template: [jade](http://jade-lang.com/)
 - dynamic stylesheets: [less](http://lesscss.org/)
-- [styles]: [twitterbootstrap](http://twitter.github.com/bootstrap/)
+- styles: [twitterbootstrap](http://twitter.github.com/bootstrap/)
 - [CoffeeScript](coffeescript.org)
 
 
