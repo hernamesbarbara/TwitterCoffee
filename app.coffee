@@ -10,22 +10,19 @@ util           = require("util")
 _              = require 'underscore'
 LocalStrategy  = require("passport-local").Strategy
 routes         = require('./routes/routes')
+winston        = require("winston")
+loggers        = require("./config/loggers")
+
 app            = express()
 server = module.exports = http.createServer(app)
 #io             = require("socket.io").listen(server)
 
+
+
 port = process.env.PORT || 8000
-console.log("Express server listening at http://127.0.0.1:#{port}/")
-console.log("You're in your #{app.settings.env} environment")
+loggers.to_console.info("Express server listening at http://127.0.0.1:#{port}/")
+loggers.to_console.info("You're in your #{app.settings.env} environment")
 server.listen(port)
-
-
-# io.sockets.on "connection", (socket) ->
-#   socket.emit "news",
-#     hello: "world"
-
-#   socket.on "my other event", (data) ->
-#     console.log data
 
 passport.serializeUser (user, done) ->
   done(null, user.id)
@@ -65,7 +62,8 @@ findByUsername = (username, fn) ->
     else
       if result and result.rows.length is 1
         return fn(null, result.rows[0]) if result.rows[0].username is username
-      fn(null, null)
+      else
+        fn(null, null)
 
 ensureAuthenticated = (req, res, next) ->
   return next() if req.isAuthenticated()
@@ -74,6 +72,20 @@ ensureAuthenticated = (req, res, next) ->
 ignoreIfAuthenticated = (req, res, next) ->
   return next() if ! req.isAuthenticated()
   res.redirect("/")
+
+logUser = (req, res, next) ->
+  path = req.route.path
+  method = req.route.method
+  params = req.route.params
+  user = req.current_user.username
+  loggers.to_db.info
+    "USER_ACTION":
+      "user": user
+      "route":
+        "path": path
+        "method":method
+        "params": params
+  return next()
 
 loadUser = (req, res, next) ->
   id = req.params.id
@@ -153,10 +165,13 @@ loadCurrentUser = (req, res, next) ->
         status: 404,
         url: req.url
 
+winston_log = write: (message, encoding) ->
+  loggers.to_console.info(message)
+
 app.configure ->
   app.set "views", __dirname + "/views"
   app.set('view engine', 'jade')
-  app.use express.logger()
+  app.use express.logger(stream: winston_log)
   app.use express.cookieParser()
   app.use express.bodyParser()
   app.use express.methodOverride()
@@ -185,19 +200,19 @@ app.configure ->
       status: 404,
       url: req.url
 
-app.get('/about', routes.about)
-app.get('/', ensureAuthenticated, loadCurrentUser, routes.home)
-app.get('/home', ensureAuthenticated, routes.home)
-app.post('/send', ensureAuthenticated, routes.newTweet)
+app.get('/about', logUser, routes.about)
+app.get('/', ensureAuthenticated, logUser, loadCurrentUser, routes.home)
+app.get('/home', ensureAuthenticated, logUser, routes.home)
+app.post('/send', ensureAuthenticated, logUser, routes.newTweet)
 app.get('/signup', ignoreIfAuthenticated, routes.newUser)
-app.post('/signup', ignoreIfAuthenticated, routes.createUser)
+app.post('/signup', ignoreIfAuthenticated, logUser, routes.createUser)
 app.get('/login', ignoreIfAuthenticated, routes.login)
 app.post "/login", passport.authenticate("local",
   failureRedirect: "/login"
   failureFlash: true
-), (req, res) ->
+),logUser, (req, res) ->
   res.redirect "/"
 
-app.get("/logout", routes.logout)
+app.get("/logout", logUser, routes.logout)
 app.get('/users', ensureAuthenticated, routes.usersIndex)
 app.get('/users/:id', ensureAuthenticated, loadUser, routes.showUser);

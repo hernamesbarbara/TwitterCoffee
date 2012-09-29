@@ -16,3 +16,4 @@ docs/*.json
 node_modules
 tmp/*
 !tables.sql
+log/*.log

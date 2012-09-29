@@ -18,6 +18,10 @@
     , "pg": "*"
     , "socket.io": "*"
     , "underscore": "*"
+    , "winston": "*"
+    , "winstond": "*"
+    , "winston-nssocket": "*"
+    , "winston-mongodb": "*"
   }
   , "devDependencies": {
     "mocha": "*"
